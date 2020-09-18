@@ -1,0 +1,8 @@
+Flask
+Flask-RESTful
+flask_jwt_extended
+marshmallow
+passlib
+sqlalchemy
+psycopg2
+alembic

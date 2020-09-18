@@ -1,0 +1,38 @@
+[
+    {
+      "name": "FLASK_ENV",
+      "value": "development"
+    },
+    {
+      "name": "FLASK_CONFIG",
+      "value": "development"
+    },
+    {
+      "name": "POSTGRES_DB",
+      "value": "postgres"
+    },
+    {
+      "name": "POSTGRES_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "POSTGRES_HOSTNAME",
+      "value": "192.168.224.1"
+    },
+    {
+      "name": "POSTGRES_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "POSTGRES_PASSWORD",
+      "value": "postgres"
+    },
+    {
+      "name": "APPLICATION_DB",
+      "value": "application"
+    },
+    {
+      "name": "JWT_SECRET_KEY",
+      "value": "secret_key"
+    }
+  ]

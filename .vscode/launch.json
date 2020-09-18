@@ -1,0 +1,11 @@
+{
+    "name": "Python: Flask",
+    "type": "python",
+    "request": "launch",
+    "module": "./manage.py",
+
+    "args": [
+        "flask",
+        "run"
+    ]
+}

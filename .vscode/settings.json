@@ -1,0 +1,10 @@
+{
+    "python.pythonPath": "venv/bin/python",
+    "files.watcherExclude": {
+        "**/venv/**": true,
+      },
+      "python.linting.pylintArgs": [
+        "--load-plugins",
+        "pylint-flask"
+    ]
+}
