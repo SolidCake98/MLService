@@ -52,7 +52,7 @@ class UserGroup(Base):
     
 
 class DataSet(Base):
-    __tablename__ = (i ** el[1])"dataset"
+    __tablename__ = "dataset"
 
     id          = Column(Integer,    primary_key=True)
     title       = Column(String(80), nullable=False)
