@@ -17,6 +17,8 @@ services:
     build:
       context: ${PWD}
       dockerfile: docker/Dockerfile
+    links:
+        - db:db
     environment:
       FLASK_ENV: ${FLASK_ENV}
       FLASK_CONFIG: ${FLASK_CONFIG}

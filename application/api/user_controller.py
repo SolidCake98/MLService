@@ -3,6 +3,7 @@ from flask_restful import Resource, reqparse
 from application import models
 from application.facades.facades import UserFacade, UserGroupFacade, GroupFacade
 from application.services import user_services as userv
+from application import schemas as sc
 
 from flask_jwt_extended import (
     create_access_token, 
@@ -12,13 +13,6 @@ from flask_jwt_extended import (
     get_raw_jwt)
 
 from application import schemas
-
-
-
-auth_parser = reqparse.RequestParser()
-auth_parser.add_argument('username', help = 'This field cannot be blank', required = True)
-auth_parser.add_argument('password', help = 'This field cannot be blank', required = True)
-#auth_parser.add_argument('email', help = 'This field cannot be blank', required = False)
 
 
 class UserRegistration(Resource):
@@ -33,33 +27,36 @@ class UserRegistration(Resource):
 class UserAuthorization(Resource):
 
     def post(self):
-
-        data = auth.parse_args()
-        facade = UserFacade(data['username'])
-
-        current_user = facade.get_user_by_username(data['username'])
-
-        if not current_user:
-            return {'message': 'User {} doesn\'t exist'.format(data['username'])}
+        json = request.get_json()
+        user_authorization = userv.AuthorizationService(json)
+        code, message = user_authorization.athorizate()
+        return message, code
         
-        if models.User.verify_hash(data['password'], current_user.password):
-            json = {'id' : current_user.id, 'username' : current_user.username}
-            access_token = create_access_token(identity = json)
-            refresh_token = create_refresh_token(identity = json)
-
-            return {
-                'message': 'Logged in as {}'.format(current_user.username),
-                'access_token': access_token,
-                'refresh_token': refresh_token}
-
-
-        else:
-            return {'message': 'Wrong credentials'}
-
+       
 class TokenRefresh(Resource):
 
     @jwt_refresh_token_required
     def post(self):
         current_user = get_jwt_identity()
+        print(current_user)
         access_token = userv.GenereteJWTService(current_user).generate_access_token()
         return {'access_token': access_token}
+
+class UserController(Resource):
+
+    def get(self, user_id): 
+        u_facade = UserFacade()
+        user = u_facade.get_entity(user_id)
+        if not user:
+            return {"error": "User doesn't exist"}, 400
+        user_schema = sc.UserSchema(only = ("id", "username"))
+        return user_schema.dump(user)
+
+class UserListController(Resource):
+
+    def get(self):
+        u_facade = UserFacade()
+        users = u_facade.get_all()
+        user_schema = sc.UserSchema(many=True, only=("id", "username", "date_joined"))
+        return user_schema.dump(users)
+
