@@ -48,10 +48,10 @@ class RegistrationService:
     def check_user(self, username, email):
 
         if self.u_facade.get_user_by_username(username):
-            raise ValueError(f"User {self.username} {self.message} already exist")
+            raise ValueError(f"User {username} already exist")
 
         if self.u_facade.get_user_by_email(email):
-            raise ValueError(f"Email {self.email} already registred")
+            raise ValueError(f"Email {email} already registred")
 
     def registrate(self):
         user          = self.create_user()
@@ -133,7 +133,7 @@ class AuthorizationService:
             }
 
         except ValueError as ex:
-            return 400, {"error" : str(ex)} 
+            return 400, {"error" : "The username or password provided is incorrect."} 
      
 
 class GenereteJWTService:
