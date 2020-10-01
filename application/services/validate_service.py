@@ -25,7 +25,6 @@ class PasswordValidate(Validate):
             raise ValueError("Password mus be at least 8 characters, conatain 1 number and 1 letter ")
 
 
-#TODO remove email availability check
 class EmailValidate(Validate):
     valid_email_regex = "[^@]+@[^@]+\.[^@]+"
 
@@ -50,3 +49,25 @@ class UserValidateProcess(Validate):
     def validate(self):
         for el in self.validation_list:
             el.validate()
+
+
+class FilenameValidate(Validate):
+
+    ALLOWED_EXTENSIONS = [
+        'zip',
+        'csv',
+        'json'
+    ]
+
+    def __init__(self, filename):
+        self.filename = filename
+
+    def allowed_file(self):
+        return '.' in self.filename and \
+           self.filename.rsplit('.', 1)[1].lower() in self.ALLOWED_EXTENSIONS
+
+    def validate(self):
+        if self.filename == '':
+            raise ValueError('Not selected file')
+        if not self.allowed_file():
+            raise ValueError('Incorrect file type')

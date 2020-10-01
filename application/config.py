@@ -15,6 +15,10 @@ class Config(object):
     )
 
     JWT_SECRET_KEY = os.environ["JWT_SECRET_KEY"]
+    
+    DATASETS_PATH = os.environ["DATASETS_PATH"]
+    MEDIA_PATH = os.environ["MEDIA_PATH"]
+
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 

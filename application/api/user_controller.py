@@ -27,7 +27,7 @@ class UserRegistration(Resource):
 class UserAuthorization(Resource):
 
     def post(self):
-        json = request.get_json()
+        json = request.form
         user_authorization = userv.AuthorizationService(json)
         code, message = user_authorization.athorizate()
         return message, code
@@ -38,7 +38,6 @@ class TokenRefresh(Resource):
     @jwt_refresh_token_required
     def post(self):
         current_user = get_jwt_identity()
-        print(current_user)
         access_token = userv.GenereteJWTService(current_user).generate_access_token()
         return {'access_token': access_token}
 
@@ -59,4 +58,3 @@ class UserListController(Resource):
         users = u_facade.get_all()
         user_schema = sc.UserSchema(many=True, only=("id", "username", "date_joined"))
         return user_schema.dump(users)
-

@@ -1,5 +1,5 @@
 from sqlalchemy.orm import relationship
-from sqlalchemy import Column, Integer, String, DateTime, func, ForeignKey, Text, Boolean, Float
+from sqlalchemy import Column, Integer, String, DateTime, func, ForeignKey, Text, Boolean, Float, Enum
 from passlib.hash import pbkdf2_sha256 as sha256
 
 from application.database import Base
@@ -20,16 +20,6 @@ class User(Base):
 
     groups      = relationship("UserGroup", back_populates="user")
     datasets    = relationship("DataSet",   back_populates="user")
-
-    #TODO move to services
-
-    @staticmethod
-    def generate_hash(password):
-        return sha256.hash(password)    
-    
-    @staticmethod
-    def verify_hash(password, hash):
-        return sha256.verify(password, hash)
 
 
 class Group(Base):
@@ -61,9 +51,23 @@ class DataSet(Base):
     is_public   = Column(Boolean,  default=True)
     date_load   = Column(DateTime, default=func.now())
     rating      = Column(Float)
+    meta_id     = Column(Integer, ForeignKey("dataset_meta.id"), nullable=False, unique=True)
 
     user = relationship("User", back_populates="datasets")
     tags = relationship("DataSetTag" , back_populates="dataset")
+    dataset_meta = relationship("DataSetMeta", back_populates="dataset")
+
+    
+
+class DataSetMeta(Base):
+    __tablename__ = "dataset_meta"
+
+    id = Column(Integer, primary_key=True)
+    path = Column(String(200), nullable=False)
+    size = Column(Integer)
+    type = Column(Enum("other", "csv", "json", name="dataset_enum", create_type=False))
+
+    dataset = relationship("DataSet", back_populates="dataset_meta")
 
 
 class Tag(Base):

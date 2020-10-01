@@ -32,5 +32,7 @@ class UserGroupFacade(AbstractFacade):
         return models.UserGroup.query.filter_by(id=user.id).all()
 
 
+
+
  
  

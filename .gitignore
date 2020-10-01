@@ -11,4 +11,7 @@ venv/
 .pytest_cache/
 .coverage
 
+datasets/
+media/
+
 alembic/versions/

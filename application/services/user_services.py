@@ -4,7 +4,7 @@ from application.services.validate_service import (
     EmailValidate,
     PasswordValidate
 )
-from datetime import datetime
+from datetime import datetime, timedelta
 from application.facades.facades import UserFacade, GroupFacade, UserGroupFacade
 from flask_jwt_extended import (
     create_access_token, 
@@ -53,6 +53,9 @@ class RegistrationService:
         if self.u_facade.get_user_by_email(email):
             raise ValueError(f"Email {email} already registred")
 
+    def generate_hash(self, password):
+        return sha256.hash(password)
+
     def registrate(self):
         user          = self.create_user()
         user_group    = self.create_user_group(user, "user")
@@ -68,7 +71,7 @@ class RegistrationService:
         except ValueError as ex:
             return 400, {"error" : str(ex)}
 
-        user.password = models.User.generate_hash(user.password)
+        user.password = self.generate_hash(user.password)
 
         try:
             self.u_facade.create(user)
@@ -111,7 +114,7 @@ class AuthorizationService:
         user = self.u_facade.get_user_by_email(email)
         if not user:
             raise ValueError(f"Email {email} doesn't exist")
-        return user
+        rejsonturn user
 
     def verify_password(self, veryfied_pass, hash):
         if not sha256.verify(veryfied_pass, hash):
@@ -142,7 +145,8 @@ class GenereteJWTService:
         self.json = json
 
     def generate_access_token(self):
-        return create_access_token(identity = self.json)
+        expires = timedelta(days=2)
+        return create_access_token(identity = self.json, expires_delta=expires)
 
     def generate_refresh_token(self):
         return create_refresh_token(identity = self.json)
@@ -155,9 +159,4 @@ class GenereteJWTService:
         access_token = jwt.generate_access_token()
         refresh_token = jwt.generate_refresh_token()
 
-        return access_token, refresh_token
-
-
-
-
-        
+        return access_token, refresh_token        

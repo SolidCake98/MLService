@@ -2,7 +2,14 @@ from flask import Flask
 from flask_restful import Api
 from application.database import db_session
 from application.api.file_controller import FileApi
-from application.api.user_controller import UserAuthorization, UserRegistration, TokenRefresh, UserController, UserListController
+from application.api.user_controller import (
+    UserAuthorization, 
+    UserRegistration, 
+    TokenRefresh, 
+    UserController, 
+    UserListController
+)
+from application.api.dataset_controller import DataSetDownloadController, DataSetUploadController
 from flask_jwt_extended import JWTManager
 
 def create_app(config_name):
@@ -21,6 +28,9 @@ def create_app(config_name):
     api.add_resource(TokenRefresh, '/api/v1/jwt/refresh')
     api.add_resource(UserListController, '/api/v1/user')
     api.add_resource(UserController, '/api/v1/user/<user_id>')
+    api.add_resource(DataSetDownloadController, '/api/v1/dataset/<filename>')
+    api.add_resource(DataSetUploadController, '/api/v1/dataset/upload')
+
 
     @app.teardown_appcontext
     def shutdown_session(exception=None):

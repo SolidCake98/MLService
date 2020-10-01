@@ -34,5 +34,13 @@
     {
       "name": "JWT_SECRET_KEY",
       "value": "secret_key"
+    },
+    {
+      "name": "DATASETS_PATH",
+      "value": "datasets"
+    },
+    {
+      "name": "MEDIA_PATH",
+      "value": "media"
     }
   ]
