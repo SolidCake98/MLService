@@ -12,14 +12,11 @@ class User(Base):
     password    = Column(String(256),nullable=False)
     email       = Column(String(30), unique=True, nullable=False)
 
-    # first_name  = Column(String(30), nullable=False)
-    # last_name   = Column(String(30), nullable=False)
-
     date_joined = Column(DateTime,   default=func.now())
     last_login  = Column(DateTime,   nullable=True)
 
-    groups      = relationship("UserGroup", back_populates="user")
-    datasets    = relationship("DataSet",   back_populates="user")
+    groups      = relationship("UserGroup", back_populates="user", cascade="all, delete-orphan, delete")
+    datasets    = relationship("DataSet",   back_populates="user", cascade="all, delete-orphan, delete")
 
 
 class Group(Base):
@@ -45,7 +42,8 @@ class DataSet(Base):
     __tablename__ = "dataset"
 
     id          = Column(Integer,    primary_key=True)
-    title       = Column(String(80), nullable=False)
+    name        = Column(String(80), nullable=False, unique=True)
+    title       = Column(String(100), nullable=False)
     description = Column(Text)
     owner_id    = Column(Integer,  ForeignKey("user.id"), nullable=False)
     is_public   = Column(Boolean,  default=True)
@@ -54,10 +52,11 @@ class DataSet(Base):
     meta_id     = Column(Integer, ForeignKey("dataset_meta.id"), nullable=False, unique=True)
 
     user = relationship("User", back_populates="datasets")
-    tags = relationship("DataSetTag" , back_populates="dataset")
-    dataset_meta = relationship("DataSetMeta", back_populates="dataset")
 
-    
+    tags = relationship("DataSetTag" , back_populates="dataset", cascade="all, delete, delete-orphan")
+    dataset_meta = relationship("DataSetMeta", back_populates="dataset", cascade="all, delete")
+    file_types = relationship("DataSetType", back_populates="dataset", cascade="all, delete-orphan, delete")
+
 
 class DataSetMeta(Base):
     __tablename__ = "dataset_meta"
@@ -65,9 +64,29 @@ class DataSetMeta(Base):
     id = Column(Integer, primary_key=True)
     path = Column(String(200), nullable=False)
     size = Column(Integer)
-    type = Column(Enum("other", "csv", "json", name="dataset_enum", create_type=False))
 
     dataset = relationship("DataSet", back_populates="dataset_meta")
+
+
+class FileType(Base):
+    __tablename__ = "file_type"
+
+    id        = Column(Integer, primary_key=True)
+    type_name = Column(String(30))
+
+    datasets = relationship("DataSetType", back_populates="file_type")
+
+
+
+class DataSetType(Base):
+    __tablename__ = "dataset_type"
+
+    id           = Column(Integer, primary_key=True)
+    dataset_id   = Column(Integer,  ForeignKey("dataset.id"), nullable=False)
+    file_type_id = Column(Integer,  ForeignKey("file_type.id"), nullable=False)
+
+    dataset      = relationship("DataSet",  back_populates="file_types")
+    file_type    = relationship("FileType", back_populates="datasets")
 
 
 class Tag(Base):

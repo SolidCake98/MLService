@@ -114,7 +114,7 @@ class AuthorizationService:
         user = self.u_facade.get_user_by_email(email)
         if not user:
             raise ValueError(f"Email {email} doesn't exist")
-        rejsonturn user
+        return user
 
     def verify_password(self, veryfied_pass, hash):
         if not sha256.verify(veryfied_pass, hash):

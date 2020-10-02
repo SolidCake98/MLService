@@ -1,6 +1,7 @@
 import os
 from abc import ABC, abstractmethod
 from application.config import Config, BASE_DIR
+from application.facades import facades
 from application.services.validate_service import FilenameValidate
 from flask import Response
 from application import models, schemas
@@ -106,17 +107,83 @@ class DataSetDownloadService:
         response.headers['Content-Disposition'] = 'attachment; filename={}'.format('archive.zip')
         return response
 
+
+#TODO add tags
 class DataSetUploadService:
 
-    def __init__(self, json, username, file):
+    types = [
+        'csv',
+        'json'
+    ]
+
+    def __init__(self, json, user, file):
         self.json = json
-        self.username = username
+        self.user = user
         self.file = file
+
+        self.d_facade = facades.DataSetFacade()
+        self.tag_facade = facades.TagFacade()
+        self.type_facade = facades.FileTypeFacade()
+        self.dtype_facade = facades.DataSetTypeFacade()
+        self.dtag_facade = facades.DataSetTagFacade()
+
     
 
     def create_dataset_info(self):
-        data = schemas.DataSetSchema(self.json)
+        data = schemas.DataSetSchema().load(data=self.json)
 
+        new_dataset = models.DataSet(
+            name = data['name'],
+            title = data['title'],
+            description = data['description'],
+            owner_id = self.user['id']
+        )
+        
+        return new_dataset
+
+
+    #TODO нормальный поиск типов файла
+    def find_types_and_size(self, dir):
+        types = set()
+        total_size = 0
+
+        for dirpath, dirnames, filenames in os.walk(dir):
+            for f in filenames:
+                fp = os.path.join(dirpath, f)
+                total_size += os.path.getsize(fp)
+
+                extesion = f.rsplit('.', 1)[1].lower()
+                if extesion not in self.types:
+                    types.add('other')
+                types.add(extesion)
+
+        return types, total_size
+
+
+
+    def create_meta(self, dir, size):
+        meta = models.DataSetMeta(
+            path = dir,
+            size = size
+        )
+        return meta
+
+    def check_dataset(self, name):
+        if self.d_facade.get_dataset_by_name(name):
+            raise ValueError('DataSet with this name was already upload')
+
+    def save(self, dataset, meta, types):
+        dataset.dataset_meta = meta 
+        self.d_facade.create(dataset)
+        
+        for t in types:
+            type = self.type_facade.get_type_by_name(t)
+            dtypy = models.DataSetType(
+                dataset = dataset,
+                file_type = type
+            )
+            self.dtype_facade.create(dtypy)
+        
 
     def upload(self):
         f_validate = FilenameValidate(self.file.filename)
@@ -124,7 +191,10 @@ class DataSetUploadService:
         try:
             f_validate.validate()
             extension = self.file.filename.rsplit('.', 1)[1].lower()
-            upload_dir = os.path.join(dataset_directory, self.username)
+
+            dataset = self.create_dataset_info()
+            self.check_dataset(dataset.name)
+            upload_dir = os.path.join(dataset_directory, self.user['username'], dataset.name)
 
             if extension != 'zip':
                 up_nz: UploadFile = UploadOther(upload_dir, self.file)
@@ -133,8 +203,16 @@ class DataSetUploadService:
 
             up_nz.upload()
 
-                
+            types, size = self.find_types_and_size(upload_dir)
+            meta = self.create_meta(os.path.join(self.user['username'], dataset.name), size)
+
+            self.save(dataset, meta, types)
+
             return {'message': 'file saved'}
 
         except ValueError as err:
             return {"error": str(err)}
+
+        except Exception as err:
+            return {"error": "Can't upload dataset"}
+

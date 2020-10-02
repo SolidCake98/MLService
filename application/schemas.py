@@ -13,34 +13,40 @@ class GroupSchema(Schema):
     name = fields.String()
 
 class UserGroupSchema(Schema):
-    id    = fields.Int(dump_only=True)
     user  = fields.Nested(UserSchema)
     group = fields.Nested(GroupSchema)
+
 
 class DataSetMetaSchema(Schema):
     id   = fields.Int(dump_only=True)
     path = fields.String()
     size = fields.Int()
     type = fields.String()
+    
+class FileTypeSchema(Schema):
+    type_name = fields.String()
+
+class DataSetTypeSchema(Schema):
+    file_type = fields.Nested(FileTypeSchema)
 
 class TagSchema(Schema):
-    id       = fields.Int(dump_only=True)
     tag_name = fields.String()
-    
 
 class DataSetSchema(Schema):
     id          = fields.Int(dump_only=True)
+    name        = fields.String()
     title       = fields.String()
     description = fields.String()
     date_load   = fields.DateTime()
     rating      = fields.Int()
 
-    user        = fields.Nested(UserSchema)
-    meta        = fields.Nested(DataSetMetaSchema)
+    user         = fields.Nested(UserSchema, only=('id', 'username', 'last_login'))
+    dataset_meta = fields.Nested(DataSetMetaSchema)
+
+    file_types   = fields.Nested(DataSetTypeSchema, many=True)
 
 
 class DataSetTagSchema(Schema):
-    id      = fields.Int(dump_only=True)
 
     dataset = fields.Nested(DataSetSchema)
     tag     = fields.Nested(TagSchema)

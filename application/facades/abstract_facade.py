@@ -20,7 +20,6 @@ class AbstractFacade(ABC):
     def remove(self, entity: Base):
         db_session.delete(entity)
         db_session.commit()
-        db_session.refresh(entity)
 
     def get_entity(self, id: int):
         return self.cls.query.filter_by(id=id).first()

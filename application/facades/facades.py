@@ -31,6 +31,47 @@ class UserGroupFacade(AbstractFacade):
     def get_user_groups(self, user):
         return models.UserGroup.query.filter_by(id=user.id).all()
 
+class DataSetFacade(AbstractFacade):
+
+    def __init__(self):
+        super().__init__(models.DataSet)
+
+    def get_dataset_by_name(self, name: str):
+        return models.DataSet.query.filter_by(name=name).first()
+
+class TagFacade(AbstractFacade):
+
+    def __init__(self):
+        super().__init__(models.Tag)
+
+    def get_tag_by_name(self, name: str):
+        return models.Tag.query.filter_by(tag_name=name).first()
+
+
+class DataSetTagFacade(AbstractFacade):
+
+    def __init__(self):
+        super().__init__(models.DataSetTag)
+
+
+class DataSetMetaFacade(AbstractFacade):
+    def __init__(self):
+        super().__init__(models.DataSetMeta)
+
+
+class FileTypeFacade(AbstractFacade):
+    def __init__(self):
+        super().__init__(models.FileType)
+
+    def get_type_by_name(self, name: str):
+        return models.FileType.query.filter_by(type_name=name).first()
+
+
+class DataSetTypeFacade(AbstractFacade):
+    def __init__(self):
+        super().__init__(models.DataSetType)
+
+
 
 
 
