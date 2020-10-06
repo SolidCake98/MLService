@@ -1,8 +1,5 @@
 import pytest
-
-from sqlalchemy.orm import sessionmaker
 from application.app import create_app
-
 
 @pytest.fixture
 def app():

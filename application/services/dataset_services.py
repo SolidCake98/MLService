@@ -9,7 +9,7 @@ from werkzeug.utils import secure_filename
 import zipfile
 import zipstream
 import shutil
-
+from threading import Thread
 
 dataset_directory = os.path.join(os.path.abspath(os.path.join(BASE_DIR, os.pardir)), Config.DATASETS_PATH)
 
@@ -48,6 +48,8 @@ class UploadZipArchive(UploadFile):
         file_path = os.path.join(self.path, self.name)
         self.file.save(file_path)
 
+    def extract(self):
+        file_path = os.path.join(self.path, self.name)
         zip_file = zipfile.ZipFile(file_path)
         zip_file.extractall(self.path)
         zip_file.close()
@@ -155,9 +157,10 @@ class DataSetUploadService:
                 extesion = f.rsplit('.', 1)[1].lower()
                 if extesion not in self.types:
                     types.add('other')
-                types.add(extesion)
+                else:
+                    types.add(extesion)
 
-        return types, total_size
+        return types, total_size//1024
 
 
 
@@ -175,7 +178,7 @@ class DataSetUploadService:
     def save(self, dataset, meta, types):
         dataset.dataset_meta = meta 
         self.d_facade.create(dataset)
-        
+        print(types)
         for t in types:
             type = self.type_facade.get_type_by_name(t)
             dtypy = models.DataSetType(
@@ -187,6 +190,12 @@ class DataSetUploadService:
 
     def upload(self):
         f_validate = FilenameValidate(self.file.filename)
+
+        def write_dataset(zi, upload_dir, name):
+            zi.extract()
+            types, size = self.find_types_and_size(upload_dir)
+            meta = self.create_meta(os.path.join(self.user['username'], name), size)
+            self.save(dataset, meta, types)
 
         try:
             f_validate.validate()
@@ -203,16 +212,14 @@ class DataSetUploadService:
 
             up_nz.upload()
 
-            types, size = self.find_types_and_size(upload_dir)
-            meta = self.create_meta(os.path.join(self.user['username'], dataset.name), size)
+            thread = Thread(target=write_dataset, kwargs={'zi': up_nz, 'upload_dir': upload_dir, 'name':dataset.name})
+            thread.start()
 
-            self.save(dataset, meta, types)
+            return {'message': 'file saved'}, 200
 
-            return {'message': 'file saved'}
 
         except ValueError as err:
-            return {"error": str(err)}
+            return {"error": str(err)}, 400
 
         except Exception as err:
-            return {"error": "Can't upload dataset"}
-
+            return {"error": "Can't upload dataset"}, 400

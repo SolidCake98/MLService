@@ -1,29 +1,37 @@
-from application.models import User, Group, UserGroup
-from application.facades.user_facade import UserFacade
+from application.services import user_services
+from application.facades import facades
 from sqlalchemy.orm import  sessionmaker
 from passlib.hash import pbkdf2_sha256 as sha256
 
-def test__create_user(session):
-    email       = "some.email@server.com"
-    password    = "123456"
-    username    = "dddddd"
-    first_name  = "dddd"
-    last_name   = "ddddddd"
-
-    user        = User(email=email, password=sha256.hash(password), username=username, first_name=first_name, last_name=last_name) 
-    group       = Group(name="admin")
-    ug          = UserGroup(user=user, group=group)
+json = {
+        "username": "danil",
+        "email": "some.email@server.com",
+        "password": "1234567f"
+    }
 
 
-    fc = UserFacade()
-    fc.create(user)
+def register_user():
+    reg = user_services.RegistrationService(json)
+    reg.registrate()
 
-    # session.add(group)
-    # session.add(ug)
 
-    #session.commit()
+def test_register_user(session):
+    register_user()
 
-    em = User.query.first()
-    print(fc.get_all()[0].password)
+    fc = facades.UserFacade()
+    user = fc.get_user_by_username(json["username"])
 
-    assert em.email == email
+    assert user.email == json["email"]
+
+def test_auth_user(session):
+    register_user()
+
+    json = {
+        "username": "danil",
+        "password": "1234567f"
+    }
+
+    auth = user_services.AuthorizationService(json)
+    code, response = auth.athorizate()
+
+    assert response['access_token'] != None

@@ -16,7 +16,7 @@ class DataSetUploadController(Resource):
 
     @jwt_required
     def post(self):
-        json = request.form 
+        json = request.form
         current_user = get_jwt_identity()
         data_set = request.files['dataset']
         d_service = DataSetUploadService(json, current_user, data_set)
