@@ -14,6 +14,8 @@ class Creator(ABC):
     def create():
         pass
 
+#TODO подумать над фабрикой
+
 class DataSetCreator(Creator):
     """
     Create record of dataset
@@ -99,11 +101,12 @@ class DataSetTagCreator(Creator):
         t_facade = facades.TagFacade()
         tag_ar = []
         for tag in self.data['tags']:
-            try:
-                t = t_facade.get_tag_by_name(tag['tag_name'])
-                tag_ar.append(t)
-            except:
-                raise Exception("Tag doesn't added")
+            t = t_facade.get_tag_by_name(tag['tag_name'])
+            if not t:
+                t = models.Tag(tag_name=tag['tag_name'])
+                t_facade.create(t)
+            tag_ar.append(t)
+
         return tag_ar
 
     def create(self):

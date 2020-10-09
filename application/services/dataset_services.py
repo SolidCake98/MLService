@@ -133,7 +133,8 @@ class DataSetUploadService:
             up_nz.upload()
 
             if extension == 'zip':
-                thread1 = Thread(target=extract, kwargs={'zi': up_nz})
+                extr = up.ZipExtractot(upload_dir)
+                thread1 = Thread(target=extract, kwargs={'zi': extr})
                 thread1.start()
 
             thread2 = Thread(target=write_dataset, kwargs={'upload_dir': upload_dir, 'name': self.data['name']})

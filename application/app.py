@@ -18,17 +18,17 @@ def create_app(config_name):
     config_module = f"application.config.{config_name.capitalize()}Config"
     app.config.from_object(config_module)
 
-    app = Api(app)
+    api = Api(app)
     jwt = JWTManager(app)
 
-    app.add_resource(UserRegistration, '/api/v1/jwt/register')
-    app.add_resource(UserAuthorization, '/api/v1/jwt/auth')
-    app.add_resource(TokenRefresh, '/api/v1/jwt/refresh')
-    app.add_resource(UserListController, '/api/v1/user')
-    app.add_resource(UserController, '/api/v1/user/<user_id>')
-    app.add_resource(DataSetDownloadController, '/api/v1/dataset/download/<filename>')
-    app.add_resource(DataSetUploadController, '/api/v1/dataset/upload')
-    app.add_resource(DataSetListController, '/api/v1/dataset')
+    api.add_resource(UserRegistration, '/api/v1/jwt/register')
+    api.add_resource(UserAuthorization, '/api/v1/jwt/auth')
+    api.add_resource(TokenRefresh, '/api/v1/jwt/refresh')
+    api.add_resource(UserListController, '/api/v1/user')
+    api.add_resource(UserController, '/api/v1/user/<user_id>')
+    api.add_resource(DataSetDownloadController, '/api/v1/dataset/download/<filename>')
+    api.add_resource(DataSetUploadController, '/api/v1/dataset/upload')
+    api.add_resource(DataSetListController, '/api/v1/dataset')
 
 
     @app.teardown_appcontext

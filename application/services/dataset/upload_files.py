@@ -1,6 +1,7 @@
 import os
 import shutil
 from abc import ABC, abstractmethod
+import zipfile
 
 class UploadFile(ABC):
 
@@ -73,6 +74,9 @@ class UploadZipArchive(UploadFile):
 
 
 class Extractor(ABC):
+
+    name = 'archive.zip'
+
     """
     Abstract to extract achives into folder
     """
@@ -86,9 +90,8 @@ class ZipExtractot(Extractor):
     Extractor for zip archives
     """
 
-    def __init__(self, path, name):
+    def __init__(self, path):
         self.path = path 
-        self.name = name
 
     def extract(self):
         file_path = os.path.join(self.path, self.name)
