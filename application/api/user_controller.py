@@ -27,7 +27,7 @@ class UserRegistration(Resource):
 class UserAuthorization(Resource):
 
     def post(self):
-        json = request.form
+        json = request.get_json()
         user_authorization = userv.AuthorizationService(json)
         code, message = user_authorization.athorizate()
         return message, code

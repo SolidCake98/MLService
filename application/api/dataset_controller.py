@@ -5,6 +5,7 @@ from flask import request
 from application import models
 from application import schemas as sc
 from flask_jwt_extended import jwt_required, get_jwt_identity
+import json
 
 class DataSetDownloadController(Resource):
 
@@ -16,10 +17,12 @@ class DataSetUploadController(Resource):
 
     @jwt_required
     def post(self):
-        json = request.form
         current_user = get_jwt_identity()
+
         data_set = request.files['dataset']
-        d_service = DataSetUploadService(json, current_user, data_set)
+        j_data = json.load(request.files['document'])
+
+        d_service = DataSetUploadService(j_data, current_user, data_set)
 
         return d_service.upload()
 

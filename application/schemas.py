@@ -30,6 +30,7 @@ class DataSetTypeSchema(Schema):
     file_type = fields.Nested(FileTypeSchema)
 
 class TagSchema(Schema):
+    id = fields.Integer()
     tag_name = fields.String()
 
 class DataSetSchema(Schema):
@@ -44,9 +45,5 @@ class DataSetSchema(Schema):
     dataset_meta = fields.Nested(DataSetMetaSchema)
 
     file_types   = fields.Nested(DataSetTypeSchema, many=True)
+    tags         = fields.Nested(TagSchema, many=True)
 
-
-class DataSetTagSchema(Schema):
-
-    dataset = fields.Nested(DataSetSchema)
-    tag     = fields.Nested(TagSchema)

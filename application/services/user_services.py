@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from application.facades.facades import UserFacade, GroupFacade, UserGroupFacade
 from flask_jwt_extended import (
     create_access_token, 
-    create_refresh_token, 
+    create_refresh_token,
 )
 from passlib.hash import pbkdf2_sha256 as sha256
 import re
