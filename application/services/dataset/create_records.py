@@ -21,15 +21,13 @@ class DataSetCreator(Creator):
     Create record of dataset
     """
 
-    def __init__(self, data, user, size):
+    def __init__(self, data, user):
         self.data = data
         self.user = user
-        self.size = size
 
     def __create_meta(self, dir):
         meta = models.DataSetMeta(
             path = dir,
-            size = self.size
         )
         return meta
 
@@ -52,7 +50,10 @@ class DataSetCreator(Creator):
         facades.DataSetFacade().create(dataset)
 
         return dataset
-        
+
+    def set_size(self, dataset, size):
+        dataset.dataset_meta.size = size
+        facades.DataSetFacade().change(dataset)
 
 
 class DataSetTypeCreator(Creator):

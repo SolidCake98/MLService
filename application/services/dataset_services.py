@@ -13,7 +13,7 @@ import zipfile
 import zipstream
 import shutil
 import json
-from threading import Thread
+from threading import Thread, Lock
 
 dataset_directory = os.path.join(os.path.abspath(os.path.join(BASE_DIR, os.pardir)), Config.DATASETS_PATH)
 
@@ -40,12 +40,13 @@ class DataSetDownloadService:
     def download(self, path):
         
         z = zipstream.ZipFile(mode='w', compression=zipstream.ZIP_DEFLATED)
-        path = os.path.join(dataset_directory, path)
+        pat = os.path.join(dataset_directory, path)
 
-        for root, dirs, files in os.walk(path):
+        
+        for root, dirs, files in os.walk(pat):
             for file in files:
                 absname = os.path.abspath(os.path.join(root, file))
-                arcname = absname[len(path) + 1:]
+                arcname = absname[len(pat) + 1:]
                 z.write(absname, arcname=arcname)
 
         response = Response(z, mimetype='application/zip')
@@ -71,7 +72,6 @@ class DataSetUploadService:
         self.user = user
         self.file = file
 
-
     #TODO нормальный поиск типов файла
     def find_types_and_size(self, dir):
         types = set()
@@ -82,7 +82,10 @@ class DataSetUploadService:
                 fp = os.path.join(dirpath, f)
                 total_size += os.path.getsize(fp)
 
-                extesion = f.rsplit('.', 1)[1].lower()
+                try:
+                    extesion = f.rsplit('.', 1)[1].lower()
+                except:
+                    extesion = ''
                 if extesion not in self.types:
                     types.add('other')
                 else:
@@ -95,25 +98,24 @@ class DataSetUploadService:
         if facades.DataSetFacade().get_dataset_by_name(name):
             raise ValueError('Data set with this name was already upload')
 
-        
-    def get_file_by_ext(self, ext, upload_dir):
-        if ext == 'zip':
-            up_nz: up.UploadFile = up.UploadZipArchive(upload_dir, self.file)
-        else:
-            up_nz: up.UploadFile = up.UploadOther(upload_dir, self.file)
-
-        return up_nz
 
     def upload(self):
 
-        def extract(zi:up.Extractor):
-            zi.extract()
+        def extract(arch:up.Extractor):
+            mutex.acquire()
+            arch.extract()
+            mutex.release()
 
-        def write_dataset(upload_dir:str, name:str):
-            types, size = self.find_types_and_size(upload_dir)
-            d_creator = cr.DataSetCreator(self.data, self.user, size)
+        def write_dataset(upload_dir:str):
+            
+            d_creator = cr.DataSetCreator(self.data, self.user)
             dataset = d_creator.create()
 
+            mutex.acquire()
+            types, size = self.find_types_and_size(upload_dir)
+            mutex.release()
+
+            d_creator.set_size(dataset, size)
             d_type = cr.DataSetTypeCreator(types, dataset)
             d_type.create()
 
@@ -127,23 +129,25 @@ class DataSetUploadService:
             self.__check_error_dataset(self.data['name'])
 
             upload_dir = os.path.join(dataset_directory, self.user['username'], self.data['name'])
+            upload_creator = up.UploadCreator(upload_dir, self.file)
 
-            extension = self.file.filename.rsplit('.', 1)[1].lower()
-            up_nz = self.get_file_by_ext(extension, upload_dir)
-            up_nz.upload()
+            uploader = upload_creator.create()
+            uploader.upload()
 
-            if extension == 'zip':
-                extr = up.ZipExtractot(upload_dir)
-                thread1 = Thread(target=extract, kwargs={'zi': extr})
-                thread1.start()
+            mutex = Lock()
 
-            thread2 = Thread(target=write_dataset, kwargs={'upload_dir': upload_dir, 'name': self.data['name']})
-            thread2.start()
+            extr = upload_creator.get_extractor()
+            if extr:
+                thread_2 = Thread(target=extract, kwargs={'arch': extr})
+            thread_2.start()
+
+            thread_1 = Thread(target=write_dataset, kwargs={'upload_dir': upload_dir})
+            thread_1.start() 
 
             return {'message': 'file saved'}, 200
 
         except ValueError as err:
             return {"error": str(err)}, 400
 
-        # except Exception as err:
-        #     return {"error": "Can't upload dataset"}, 400
+        except Exception as err:
+            return {"error": "Can't upload dataset"}, 500

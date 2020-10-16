@@ -8,9 +8,11 @@ class UploadFile(ABC):
     """
     It's an abstract class for uploading datasets and expansion it
     """
-    
-    name = 'archive.zip'
 
+    def __init__(self, path, file):
+        self.path = path
+        self.file = file
+    
     @abstractmethod
     def upload():
         pass
@@ -32,16 +34,24 @@ class UploadFile(ABC):
                 else:
                     shutil.rmtree(file_object_path)
 
+class Extractor(ABC):
+
+    """
+    Abstract to extract achives into folder
+    """
+
+    @abstractmethod
+    def extract():
+        pass
+
 
 class UploadOther(UploadFile):
 
     """
     Upload all files except archives
     """
-
     def __init__(self, path, file):
-        self.path = path
-        self.file = file
+        super().__init__(path, file)
 
     def upload(self):
         self.clear_path(self.path)
@@ -53,14 +63,15 @@ class UploadOther(UploadFile):
         self.file.save(file_dir)
 
 
-class UploadZipArchive(UploadFile):
+class UploadZipArchive(UploadFile, Extractor):
     """
     Upload archives
     """
 
+    name = 'archive.zip'
+
     def __init__(self, path, file):
-        self.path = path
-        self.file = file
+        super().__init__(path, file)
 
     def upload(self):
         self.clear_path(self.path)
@@ -72,30 +83,45 @@ class UploadZipArchive(UploadFile):
         zip_file.extractall(self.path)
         zip_file.close()
 
-
-class Extractor(ABC):
-
-    name = 'archive.zip'
-
-    """
-    Abstract to extract achives into folder
-    """
-
-    @abstractmethod
-    def extract():
-        pass
-
-class ZipExtractot(Extractor):
-    """
-    Extractor for zip archives
-    """
-
-    def __init__(self, path):
-        self.path = path 
-
     def extract(self):
         file_path = os.path.join(self.path, self.name)
         zip_file = zipfile.ZipFile(file_path)
         zip_file.extractall(self.path)
         zip_file.close()
+        
         os.remove(file_path)
+
+
+class UploadCreator():
+
+    def __init__(self, upload_dir, file):
+        self.upload_dir = upload_dir
+        self.file = file
+        self.extension = self.file.filename.rsplit('.', 1)[1].lower()
+        self.ext_func = {
+            "zip": lambda: self.create_zip_upload(),
+            "other": lambda: self.create_other_upload()
+        }
+
+    def create_zip_upload(self):
+        up_nz = UploadZipArchive(self.upload_dir, self.file)
+        return up_nz
+
+    def create_other_upload(self):
+        up_nz = UploadOther(self.upload_dir, self.file)
+        return up_nz
+    
+    def create(self):
+        try:
+            uploader: UploadFile = self.ext_func[self.extension]()
+            return uploader
+        except:
+            uploader: UploadFile = self.ext_func["other"]()
+            return uploader
+
+    def get_extractor(self):
+        try:
+            ext: Extractor = self.ext_func[self.extension]()
+            return ext
+        except:
+            return None

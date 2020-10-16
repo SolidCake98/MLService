@@ -1,37 +1,42 @@
 from application.services import user_services
 from application.facades import facades
-from sqlalchemy.orm import  sessionmaker
 from passlib.hash import pbkdf2_sha256 as sha256
+from werkzeug.datastructures import FileStorage
 
-json = {
+json_r = {
         "username": "danil",
         "email": "some.email@server.com",
         "password": "1234567f"
     }
 
+json_a = {
+        "username": "some.email@server.com",
+        "password": "1234567f"
+    }
 
-def register_user():
+
+
+def register_user(json):
     reg = user_services.RegistrationService(json)
     reg.registrate()
 
+def auth_user(json):
+    auth = user_services.AuthorizationService(json)
+    code, response = auth.athorizate()
+    return code, response
+
+
 
 def test_register_user(session):
-    register_user()
+    register_user(json_r)
 
     fc = facades.UserFacade()
     user = fc.get_user_by_username(json["username"])
 
-    assert user.email == json["email"]
+    assert user.email == json_r["email"]
 
 def test_auth_user(session):
-    register_user()
+    register_user(json_r)
+    code, response = auth_user(json_a)
 
-    json = {
-        "username": "danil",
-        "password": "1234567f"
-    }
-
-    auth = user_services.AuthorizationService(json)
-    code, response = auth.athorizate()
-
-    assert response['access_token'] != None
+    assert code == 200

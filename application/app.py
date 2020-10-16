@@ -8,7 +8,7 @@ from application.api.user_controller import (
     UserController, 
     UserListController
 )
-from application.api.dataset_controller import DataSetDownloadController, DataSetUploadController, DataSetListController
+from application.api.dataset_controller import DataSetDownloadController, DataSetUploadController, DataSetListController, DataSetController
 from flask_jwt_extended import JWTManager
 
 def create_app(config_name):
@@ -26,9 +26,10 @@ def create_app(config_name):
     api.add_resource(TokenRefresh, '/api/v1/jwt/refresh')
     api.add_resource(UserListController, '/api/v1/user')
     api.add_resource(UserController, '/api/v1/user/<user_id>')
-    api.add_resource(DataSetDownloadController, '/api/v1/dataset/download/<filename>')
+    api.add_resource(DataSetDownloadController, '/api/v1/dataset/download/<user>/<data>')
     api.add_resource(DataSetUploadController, '/api/v1/dataset/upload')
     api.add_resource(DataSetListController, '/api/v1/dataset')
+    api.add_resource(DataSetController, '/api/v1/dataset/<user>/<data>')
 
 
     @app.teardown_appcontext

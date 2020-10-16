@@ -39,6 +39,11 @@ class DataSetFacade(AbstractFacade):
     def get_dataset_by_name(self, name: str):
         return models.DataSet.query.filter_by(name=name).first()
 
+    def get_dataset_by_user_and_data(self, user: str, data:str):
+        return models.DataSet.query.join(models.User).filter(models.User.username == user, \
+        models.DataSet.name == data).first()
+        
+
 class TagFacade(AbstractFacade):
 
     def __init__(self):

@@ -9,9 +9,9 @@ import json
 
 class DataSetDownloadController(Resource):
 
-    def get(self, filename):
+    def get(self, user, data):
         d_service = DataSetDownloadService()
-        return d_service.download(filename)
+        return d_service.download( user + "/" + data)
 
 class DataSetUploadController(Resource):
 
@@ -33,3 +33,12 @@ class DataSetListController(Resource):
         datasets = d_facade.get_all()
         dataset_schema = sc.DataSetSchema(many=True)
         return dataset_schema.dump(datasets)
+
+class DataSetController(Resource):
+
+    def get(self, user, data): 
+        d_facade = facades.DataSetFacade()
+        dataset = d_facade.get_dataset_by_user_and_data(user, data)
+        dataset_schema = sc.DataSetSchema()
+
+        return dataset_schema.dump(dataset)
