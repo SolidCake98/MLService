@@ -41,8 +41,8 @@ class UserGroup(Base):
 class DataSet(Base):
     __tablename__ = "dataset"
 
-    id          = Column(Integer,    primary_key=True)
-    name        = Column(String(80), nullable=False, unique=True)
+    id          = Column(Integer,     primary_key=True)
+    name        = Column(String(80),  nullable=False)
     title       = Column(String(100), nullable=False)
     description = Column(Text)
     owner_id    = Column(Integer,  ForeignKey("user.id"), nullable=False)
@@ -50,11 +50,12 @@ class DataSet(Base):
     date_load   = Column(DateTime, default=func.now())
     rating      = Column(Float)
     meta_id     = Column(Integer, ForeignKey("dataset_meta.id"), nullable=False, unique=True)
+    is_loaded   = Column(Boolean, default=False)
 
     user = relationship("User", back_populates="datasets")
 
     tags = relationship("DataSetTag" , back_populates="dataset", cascade="all, delete, delete-orphan")
-    dataset_meta = relationship("DataSetMeta", back_populates="dataset", cascade="all, delete")
+    dataset_meta = relationship("DataSetMeta", back_populates="dataset", cascade="all, delete", lazy='subquery')
     file_types = relationship("DataSetType", back_populates="dataset", cascade="all, delete-orphan, delete")
 
 
@@ -64,6 +65,7 @@ class DataSetMeta(Base):
     id = Column(Integer, primary_key=True)
     path = Column(String(200), nullable=False)
     size = Column(Integer)
+    size_name = Column(String(20))
 
     dataset = relationship("DataSet", back_populates="dataset_meta")
 

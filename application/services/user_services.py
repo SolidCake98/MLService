@@ -131,6 +131,7 @@ class AuthorizationService:
 
             return 200, {
                 'message': f'Logged in as {user.username}',
+                'username': user.username,
                 'access_token': a_token,
                 'refresh_token': r_token
             }

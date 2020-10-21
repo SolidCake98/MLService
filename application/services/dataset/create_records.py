@@ -34,9 +34,8 @@ class DataSetCreator(Creator):
     def __create_info(self):
 
         new_dataset = models.DataSet(
-            name = self.data['name'],
+            name  =  self.data['name'],
             title = self.data['title'],
-            description = self.data['description'],
             owner_id = self.user['id']
         )
 
@@ -51,8 +50,20 @@ class DataSetCreator(Creator):
 
         return dataset
 
-    def set_size(self, dataset, size):
+    def set_size(self, dataset, total_size):
+        sizes = ['B', 'KB', 'MB', 'GB']
+
+        size_name = ""
+        size = 0
+
+        for el in sizes:
+            if total_size[el] > 0:
+                size_name = el
+                size = total_size[el]
+
         dataset.dataset_meta.size = size
+        dataset.dataset_meta.size_name = size_name
+
         facades.DataSetFacade().change(dataset)
 
 

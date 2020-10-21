@@ -21,7 +21,7 @@ class DataSetMetaSchema(Schema):
     id   = fields.Int(dump_only=True)
     path = fields.String()
     size = fields.Int()
-    type = fields.String()
+    size_name = fields.String()
     
 class FileTypeSchema(Schema):
     type_name = fields.String()

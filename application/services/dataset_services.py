@@ -75,12 +75,26 @@ class DataSetUploadService:
     #TODO нормальный поиск типов файла
     def find_types_and_size(self, dir):
         types = set()
-        total_size = 0
+
+        sizes = ['B', 'KB', 'MB', 'GB']
+        total_size = {'B': 0, 'KB': 0, 'MB': 0, 'GB': 0}
 
         for dirpath, dirnames, filenames in os.walk(dir):
             for f in filenames:
                 fp = os.path.join(dirpath, f)
-                total_size += os.path.getsize(fp)
+
+                size = os.path.getsize(fp)
+                i = 0
+
+                while size > 0 and i < len(sizes):
+                    total_size[sizes[i]] += size % 1024
+                    size = size // 1024
+                    i += 1
+                
+                for s in range(len(sizes) - 1):
+                    if total_size[sizes[s]] // 1024 > 0:
+                        total_size[sizes[s+1]] +=  total_size[sizes[s]] // 1024
+                        total_size[sizes[s]] = total_size[sizes[s]] % 1024
 
                 try:
                     extesion = f.rsplit('.', 1)[1].lower()
@@ -91,7 +105,7 @@ class DataSetUploadService:
                 else:
                     types.add(extesion)
 
-        return types, total_size//1024
+        return types, total_size
 
     
     def __check_error_dataset(self, name):
@@ -106,10 +120,9 @@ class DataSetUploadService:
             arch.extract()
             mutex.release()
 
-        def write_dataset(upload_dir:str):
+        def write_dataset(upload_dir:str, dataset_id:int):
             
-            d_creator = cr.DataSetCreator(self.data, self.user)
-            dataset = d_creator.create()
+            dataset = facades.DataSetFacade().get_entity(dataset_id)
 
             mutex.acquire()
             types, size = self.find_types_and_size(upload_dir)
@@ -119,8 +132,8 @@ class DataSetUploadService:
             d_type = cr.DataSetTypeCreator(types, dataset)
             d_type.create()
 
-            d_tag = cr.DataSetTagCreator(dataset, self.data)
-            d_tag.create()
+            dataset.is_loaded = True
+            facades.DataSetFacade().change(dataset)
 
 
         try:
@@ -134,14 +147,18 @@ class DataSetUploadService:
             uploader = upload_creator.create()
             uploader.upload()
 
+
             mutex = Lock()
 
             extr = upload_creator.get_extractor()
             if extr:
                 thread_2 = Thread(target=extract, kwargs={'arch': extr})
-            thread_2.start()
+                thread_2.start()
 
-            thread_1 = Thread(target=write_dataset, kwargs={'upload_dir': upload_dir})
+            d_creator = cr.DataSetCreator(self.data, self.user)
+            dataset = d_creator.create()
+
+            thread_1 = Thread(target=write_dataset, kwargs={'upload_dir': upload_dir, 'dataset_id': dataset.id})
             thread_1.start() 
 
             return {'message': 'file saved'}, 200
@@ -149,5 +166,7 @@ class DataSetUploadService:
         except ValueError as err:
             return {"error": str(err)}, 400
 
-        except Exception as err:
-            return {"error": "Can't upload dataset"}, 500
+        # except Exception as err:
+        #     return {"error": "Can't upload dataset"}, 500
+
+#TODO добавить сервисы для добавления описания и тэгов
