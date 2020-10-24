@@ -1,4 +1,5 @@
 from marshmallow import Schema, fields
+import datetime as dt
 
 class UserSchema(Schema):
     id          = fields.Int(dump_only=True)
@@ -47,3 +48,28 @@ class DataSetSchema(Schema):
     file_types   = fields.Nested(DataSetTypeSchema, many=True)
     tags         = fields.Nested(TagSchema, many=True)
 
+    since_created = fields.Method("get_days_since_created")
+
+    def get_days_since_created(self, obj):
+        t = ['hour', 'day', 'week', 'month', 'year']
+        f = [ 
+            lambda : (dt.datetime.now() - obj.date_load).seconds//3600,
+            lambda : (dt.datetime.now() - obj.date_load).days,
+            lambda : int((dt.datetime.now() - obj.date_load).days / 7),
+            lambda : int((dt.datetime.now() - obj.date_load).days / 30),
+            lambda : int((dt.datetime.now() - obj.date_load).days / 365.25)
+        ]
+
+        res = ""
+        for i in range(len(t)):
+            val = f[len(t) - i - 1]()
+            if val > 0:
+                if val == 1:
+                    res = f"a {t[len(t) - i - 1]}"
+                else:
+                    res = f"{val} {t[len(t) - i - 1]}s"
+
+                return res
+        return 'now'
+                
+        

@@ -14,21 +14,56 @@ import zipstream
 import shutil
 import json
 from threading import Thread, Lock
+import re
 
 dataset_directory = os.path.join(os.path.abspath(os.path.join(BASE_DIR, os.pardir)), Config.DATASETS_PATH)
 
 
-# class ReadFromFileInZip:
+class DataSetPathStructure:
 
-#     def __init__(self, path, name):
-#         self.path = path
-#         self.name = nimportame
+    def __init__(self, json):
+        self.path = os.path.join(dataset_directory, json['path'])
+        self.pos = json['pos']
 
-#     def read(self):
-#         zip_file = zipfile.ZipFile(self.path, 'r')
-#         with zip_file.open(self.name) as f:
-#             for i, line in enumerate(f):
-#                 pass
+    def sorted_alphanumeric(self, data):
+        convert = lambda text: int(text) if text.isdigit() else text.lower()
+        alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ] 
+        return sorted(data, key=alphanum_key)
+
+    def read(self, offset = 20):
+
+        res = {}
+        lst = []
+
+        dir_list = self.sorted_alphanumeric(os.listdir(self.path))
+        count = len(dir_list)
+
+        s_dir_list = sorted(dir_list, key= lambda x : not os.path.isdir(os.path.join(self.path, x)))
+
+        res['dir'] = lst
+        res['next_pos'] = (self.pos + offset) if max(0, count - (self.pos + offset)) else 0
+
+        res['count'] = max(0, count - (self.pos + offset))
+
+        for i, x in enumerate(s_dir_list[self.pos: self.pos + offset]):
+
+            dir_info = {}
+
+            if os.path.isdir(os.path.join(self.path, x)):
+                dir_info['type'] = 'directory'
+                
+            else:
+                dir_info['type'] = 'file'
+
+            dir_info['id'] = self.pos + i
+            dir_info['name'] = os.path.basename(x)
+
+            lst.append(dir_info)
+
+        return res
+        
+
+        
 
 
 class DataSetDownloadService:
@@ -166,7 +201,7 @@ class DataSetUploadService:
         except ValueError as err:
             return {"error": str(err)}, 400
 
-        # except Exception as err:
-        #     return {"error": "Can't upload dataset"}, 500
+        except Exception as err:
+            return {"error": "Can't upload dataset"}, 500
 
 #TODO добавить сервисы для добавления описания и тэгов
