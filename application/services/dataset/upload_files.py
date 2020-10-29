@@ -3,24 +3,32 @@ import shutil
 from abc import ABC, abstractmethod
 import zipfile
 
+
+
+class AddFile(ABC):
+
+    @abstractmethod
+    def add():
+        pass
+
 class UploadFile(ABC):
 
+    @abstractmethod
+    def upload():
+        pass
+
+
+class BaseFiles:
+
     """
-    It's an abstract class for uploading datasets and expansion it
+    It's a basic class for uploading datasets and expansion it
     """
 
     def __init__(self, path, file):
         self.path = path
         self.file = file
     
-    @abstractmethod
-    def upload():
-        pass
-
-    @abstractmethod
-    def add():
-        pass
-
+    
     def clear_path(self, path):
 
         try:
@@ -34,6 +42,7 @@ class UploadFile(ABC):
                 else:
                     shutil.rmtree(file_object_path)
 
+
 class Extractor(ABC):
 
     """
@@ -45,7 +54,7 @@ class Extractor(ABC):
         pass
 
 
-class UploadOther(UploadFile):
+class UploadOther(BaseFile, UploadFile, AddFile):
 
     """
     Upload all files except archives
@@ -63,7 +72,7 @@ class UploadOther(UploadFile):
         self.file.save(file_dir)
 
 
-class UploadZipArchive(UploadFile, Extractor):
+class UploadZipArchive(BaseFile, UploadFile, AddFile, Extractor):
     """
     Upload archives
     """

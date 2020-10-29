@@ -13,8 +13,10 @@ from application.api.dataset_controller import (
     DataSetUploadController, 
     DataSetListController, 
     DataSetController,
-    DataSetDirReadController
+    DataSetDirReadController,
+    DataSetFileReadController,
 )
+from application.api.media_controller import DataSetImageController
 from flask_jwt_extended import JWTManager
 
 def create_app(config_name):
@@ -39,6 +41,9 @@ def create_app(config_name):
     api.add_resource(DataSetListController, '/api/v1/dataset')
     api.add_resource(DataSetController, '/api/v1/dataset/<user>/<data>')
     api.add_resource(DataSetDirReadController, '/api/v1/dataset/dir')
+    api.add_resource(DataSetFileReadController, '/api/v1/dataset/file')
+    api.add_resource(DataSetImageController, '/api/v1/dataset/img/<path:path>')
+
 
 
     @app.teardown_appcontext

@@ -5,8 +5,9 @@ from application.facades import facades
 from application.services.validate_service import FilenameValidate
 from application.services.dataset import upload_files as up
 from application.services.dataset import create_records as cr
+from application.services.dataset import read_csv as rcsv
 
-from flask import Response
+from flask import Response, send_from_directory
 from application import models, schemas
 from werkzeug.utils import secure_filename
 import zipfile
@@ -15,10 +16,13 @@ import shutil
 import json
 from threading import Thread, Lock
 import re
+import imghdr
+import mimetypes
 
 dataset_directory = os.path.join(os.path.abspath(os.path.join(BASE_DIR, os.pardir)), Config.DATASETS_PATH)
 
-
+#TODO сделать раздление по файлам
+#TODO когда гружу директории сразу грузить и uri для картинок
 class DataSetPathStructure:
 
     def __init__(self, json):
@@ -42,7 +46,6 @@ class DataSetPathStructure:
 
         res['dir'] = lst
         res['next_pos'] = (self.pos + offset) if max(0, count - (self.pos + offset)) else 0
-
         res['count'] = max(0, count - (self.pos + offset))
 
         for i, x in enumerate(s_dir_list[self.pos: self.pos + offset]):
@@ -62,10 +65,6 @@ class DataSetPathStructure:
 
         return res
         
-
-        
-
-
 class DataSetDownloadService:
 
     """
@@ -88,8 +87,6 @@ class DataSetDownloadService:
         response.headers['Content-Disposition'] = 'attachment; filename={}'.format('archive.zip')
         return response
 
-
-#TODO add tags and do refactor
 class DataSetUploadService:
 
     """
@@ -135,6 +132,7 @@ class DataSetUploadService:
                     extesion = f.rsplit('.', 1)[1].lower()
                 except:
                     extesion = ''
+
                 if extesion not in self.types:
                     types.add('other')
                 else:
@@ -167,13 +165,13 @@ class DataSetUploadService:
             d_type = cr.DataSetTypeCreator(types, dataset)
             d_type.create()
 
-            dataset.is_loaded = True
+            dataset.is_loaded = Trueos.path
             facades.DataSetFacade().change(dataset)
-
 
         try:
             f_validate = FilenameValidate(self.file.filename)
             f_validate.validate()
+
             self.__check_error_dataset(self.data['name'])
 
             upload_dir = os.path.join(dataset_directory, self.user['username'], self.data['name'])
@@ -181,11 +179,10 @@ class DataSetUploadService:
 
             uploader = upload_creator.create()
             uploader.upload()
-
-
             mutex = Lock()
 
             extr = upload_creator.get_extractor()
+
             if extr:
                 thread_2 = Thread(target=extract, kwargs={'arch': extr})
                 thread_2.start()
@@ -203,5 +200,87 @@ class DataSetUploadService:
 
         except Exception as err:
             return {"error": "Can't upload dataset"}, 500
+
+class DataSetReadFile:
+
+    def __init__(self, json):
+        self.json = json
+        self.path = os.path.join(dataset_directory, self.json['path'])
+        self.pos = self.json['pos']
+
+
+    def csv_read(self):
+        response = {}
+        reader = rcsv.ReadCSVFile(self.path)
+
+
+        if self.pos == 0:
+            response['type'] = 'csv'
+            header = reader.get_header()
+            # info = reader.fast_anlysis()
+
+            response['header'] = header
+            # response['info'] = info
+        
+        response['data'] = reader.read_small_chunck(self.pos)
+        return response
+
+    def txt_read(self):
+        response = {}
+        response['type'] = 'text'
+        with open(self.path) as f:
+            response['data'] = f.read()
+        return response
+
+
+    def img_read(self):
+        uri_to_img = 'http://192.168.0.105:5000/api/v1/dataset/img/'
+        response = {}
+        response['type'] = 'img'
+        response['data'] = uri_to_img + self.json['path']
+
+        return response
+
+    def read(self):
+        try:
+            extension = self.path.rsplit('.', 1)[1].lower()
+            if extension == "csv":
+                return self.csv_read()
+
+            elif DataSetImage.check_img(self.path):
+                return self.img_read()
+
+            elif mimetypes.guess_type(self.path)[0].split('/')[0] == 'text':
+                return self.txt_read()
+
+            else:
+                print(mimetypes.guess_type(self.path).split('/')[0])
+                return {'error':'Incorrect type'}
+
+        except:
+            return {'error':'Incorrect type'}
+
+
+class DataSetImage:
+
+    def __init__(self, path):
+        self.path = path
+
+    @staticmethod
+    def check_img(path):
+        allowed_img_types = ['gif', 'jpeg', 'png']
+
+        try:
+            return imghdr.what(path) in allowed_img_types
+        except:
+            return False
+
+    def send_image(self):
+
+        if self.check_img(os.path.join(dataset_directory, self.path)):
+            return send_from_directory(dataset_directory, self.path)
+
+        else:
+            return 404
 
 #TODO добавить сервисы для добавления описания и тэгов

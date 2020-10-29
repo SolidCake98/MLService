@@ -1,4 +1,9 @@
-from application.services.dataset_services import DataSetUploadService, DataSetDownloadService, DataSetPathStructure
+from application.services.dataset_services import (
+    DataSetUploadService, 
+    DataSetDownloadService, 
+    DataSetPathStructure, 
+    DataSetReadFile
+)
 from application.facades import facades
 from flask_restful import Resource
 from flask import request
@@ -40,6 +45,14 @@ class DataSetDirReadController(Resource):
         json = request.get_json()
         d_r_service = DataSetPathStructure(json)
         return d_r_service.read()
+
+class DataSetFileReadController(Resource):
+
+    def post(self):
+        json = request.get_json()
+        d_rf_service = DataSetReadFile(json)
+        return d_rf_service.read()
+
 
 class DataSetController(Resource):
 

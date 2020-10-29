@@ -7,3 +7,4 @@ sqlalchemy
 psycopg2
 alembic
 zipstream-new
+pandas
