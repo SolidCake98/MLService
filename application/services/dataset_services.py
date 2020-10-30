@@ -1,6 +1,6 @@
 import os
 from abc import ABC, abstractmethod
-from application.config import Config, BASE_DIR
+from application.config import Config
 from application.facades import facades
 from application.services.validate_service import FilenameValidate
 from application.services.dataset import upload_files as up
@@ -19,14 +19,13 @@ import re
 import imghdr
 import mimetypes
 
-dataset_directory = os.path.join(os.path.abspath(os.path.join(BASE_DIR, os.pardir)), Config.DATASETS_PATH)
 
 #TODO сделать раздление по файлам
 #TODO когда гружу директории сразу грузить и uri для картинок
 class DataSetPathStructure:
 
     def __init__(self, json):
-        self.path = os.path.join(dataset_directory, json['path'])
+        self.path = os.path.join(Config.DATASETS_ABS_PATH, json['path'])
         self.pos = json['pos']
 
     def sorted_alphanumeric(self, data):
@@ -74,7 +73,7 @@ class DataSetDownloadService:
     def download(self, path):
         
         z = zipstream.ZipFile(mode='w', compression=zipstream.ZIP_DEFLATED)
-        pat = os.path.join(dataset_directory, path)
+        pat = os.path.join(Config.DATASETS_ABS_PATH, path)
 
         
         for root, dirs, files in os.walk(pat):
@@ -174,7 +173,7 @@ class DataSetUploadService:
 
             self.__check_error_dataset(self.data['name'])
 
-            upload_dir = os.path.join(dataset_directory, self.user['username'], self.data['name'])
+            upload_dir = os.path.join(Config.DATASETS_ABS_PATH, self.user['username'], self.data['name'])
             upload_creator = up.UploadCreator(upload_dir, self.file)
 
             uploader = upload_creator.create()
@@ -203,62 +202,15 @@ class DataSetUploadService:
 
 class DataSetReadFile:
 
-    def __init__(self, json):
+    def __init__(self, json, reader):
         self.json = json
-        self.path = os.path.join(dataset_directory, self.json['path'])
+        self.path = self.json['path']
+        self.abs_path = os.path.join(Config.DATASETS_ABS_PATH, self.path)
         self.pos = self.json['pos']
-
-
-    def csv_read(self):
-        response = {}
-        reader = rcsv.ReadCSVFile(self.path)
-
-
-        if self.pos == 0:
-            response['type'] = 'csv'
-            header = reader.get_header()
-            # info = reader.fast_anlysis()
-
-            response['header'] = header
-            # response['info'] = info
-        
-        response['data'] = reader.read_small_chunck(self.pos)
-        return response
-
-    def txt_read(self):
-        response = {}
-        response['type'] = 'text'
-        with open(self.path) as f:
-            response['data'] = f.read()
-        return response
-
-
-    def img_read(self):
-        uri_to_img = 'http://192.168.0.105:5000/api/v1/dataset/img/'
-        response = {}
-        response['type'] = 'img'
-        response['data'] = uri_to_img + self.json['path']
-
-        return response
+        self.reader = reader
 
     def read(self):
-        try:
-            extension = self.path.rsplit('.', 1)[1].lower()
-            if extension == "csv":
-                return self.csv_read()
-
-            elif DataSetImage.check_img(self.path):
-                return self.img_read()
-
-            elif mimetypes.guess_type(self.path)[0].split('/')[0] == 'text':
-                return self.txt_read()
-
-            else:
-                print(mimetypes.guess_type(self.path).split('/')[0])
-                return {'error':'Incorrect type'}
-
-        except:
-            return {'error':'Incorrect type'}
+        return self.reader.read(self.path, self.pos)
 
 
 class DataSetImage:
@@ -277,8 +229,8 @@ class DataSetImage:
 
     def send_image(self):
 
-        if self.check_img(os.path.join(dataset_directory, self.path)):
-            return send_from_directory(dataset_directory, self.path)
+        if self.check_img(os.path.join(Config.DATASETS_ABS_PATH, self.path)):
+            return send_from_directory(Config.DATASETS_ABS_PATH, self.path)
 
         else:
             return 404

@@ -4,6 +4,7 @@ from application.services.dataset_services import (
     DataSetPathStructure, 
     DataSetReadFile
 )
+from application.services.dataset.file_reader import ReaderCreator
 from application.facades import facades
 from flask_restful import Resource
 from flask import request
@@ -23,12 +24,10 @@ class DataSetUploadController(Resource):
     @jwt_required
     def post(self):
         current_user = get_jwt_identity()
-
         data_set = request.files['dataset']
         j_data = json.load(request.files['document'])
 
         d_service = DataSetUploadService(j_data, current_user, data_set)
-
         return d_service.upload()
 
 class DataSetListController(Resource):
@@ -50,7 +49,9 @@ class DataSetFileReadController(Resource):
 
     def post(self):
         json = request.get_json()
-        d_rf_service = DataSetReadFile(json)
+
+        reader = ReaderCreator().create(json['path'])
+        d_rf_service = DataSetReadFile(json, reader)
         return d_rf_service.read()
 
 

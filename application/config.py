@@ -18,7 +18,8 @@ class Config(object):
     
     DATASETS_PATH = os.environ["DATASETS_PATH"]
     MEDIA_PATH = os.environ["MEDIA_PATH"]
-
+    DATASETS_ABS_PATH = os.path.join(os.path.abspath(os.path.join(BASE_DIR, os.pardir)), DATASETS_PATH)
+    
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 

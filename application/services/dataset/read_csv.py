@@ -14,7 +14,7 @@ class ReadCSVFile:
         fp.close()
         return header
 
-    def read_small_chunck(self, pos = 0, chunk=40):
+    def read_small_chunck(self, pos = 0, chunk=30):
         next_pos = 0
 
         fp = open(self.path)        
@@ -27,6 +27,8 @@ class ReadCSVFile:
                 
         for i in range(chunk):
             line = fp.readline()
+            if line == "":
+                break
             lines.append(re.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)",line[:-1]))
 
         next_pos = fp.tell()

@@ -18,7 +18,7 @@ class UploadFile(ABC):
         pass
 
 
-class BaseFiles:
+class BaseFile:
 
     """
     It's a basic class for uploading datasets and expansion it
