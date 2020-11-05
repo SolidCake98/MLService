@@ -31,7 +31,7 @@ def test_register_user(session):
     register_user(json_r)
 
     fc = facades.UserFacade()
-    user = fc.get_user_by_username(json["username"])
+    user = fc.get_user_by_username(json_r["username"])
 
     assert user.email == json_r["email"]
 

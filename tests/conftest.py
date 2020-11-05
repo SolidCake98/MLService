@@ -11,6 +11,6 @@ def session(app):
     with app.app_context():
         from application.database import Base, engine, db_session
         Base.metadata.drop_all(engine)
-        Base.metadata.create_all(engine) 
+        Base.metadata.create_all(engine)
 
     yield db_session

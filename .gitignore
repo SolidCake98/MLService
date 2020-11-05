@@ -13,5 +13,3 @@ venv/
 
 datasets/
 media/
-
-alembic/versions/
