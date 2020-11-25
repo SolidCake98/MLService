@@ -15,8 +15,9 @@ class User(Base):
     date_joined = Column(DateTime,   default=func.now())
     last_login  = Column(DateTime,   nullable=True)
 
-    groups      = relationship("UserGroup", back_populates="user", cascade="all, delete-orphan, delete")
-    datasets    = relationship("DataSet",   back_populates="user", cascade="all, delete-orphan, delete")
+    groups       = relationship("UserGroup", back_populates="user", cascade="all, delete-orphan, delete")
+    user_ratings = relationship("UserRating", back_populates="user", cascade="all, delete")
+    datasets     = relationship("DataSet",   back_populates="user", cascade="all, delete-orphan, delete")
 
 
 class Group(Base):
@@ -53,6 +54,7 @@ class DataSet(Base):
     is_loaded   = Column(Boolean, default=False)
 
     user = relationship("User", back_populates="datasets")
+    user_ratings = relationship("UserRating", back_populates="dataset", cascade="all, delete")
 
     tags = relationship("DataSetTag" , back_populates="dataset", cascade="all, delete, delete-orphan")
     dataset_meta = relationship("DataSetMeta", back_populates="dataset", cascade="all, delete", lazy='subquery')
@@ -109,3 +111,41 @@ class DataSetTag(Base):
 
     dataset     = relationship("DataSet",  back_populates="tags")
     tag         = relationship("Tag", back_populates="datasets")
+
+
+class UserRating(Base):
+    __tablename__ = "user_rating"
+
+    id           = Column(Integer, primary_key=True)
+    dataset_id   = Column(Integer, ForeignKey("dataset.id"), nullable=False)
+    user_id      = Column(Integer,  ForeignKey("user.id"), nullable=False)
+    rating       = Column(Float)
+    is_favoritre = Column(Boolean, default=False)
+    commenatary  = Column(Text)
+
+    user = relationship("User", back_populates="user_ratings")
+    dataset = relationship("DataSet", back_populates="user_ratings")
+
+
+class UserDataset(Base):
+    """
+    It's a view
+    """
+    __tablename__ = "user_dataset"
+
+    id       =  Column(Integer, primary_key=True)
+    username = Column(String)
+    name     = Column(String)
+    title    = Column(String)
+
+
+class CountDataset(Base):
+    """
+    It's a view
+    """
+    __tablename__ = "count_dataset"
+
+    id       =  Column(Integer, primary_key=True)
+    username = Column(String)
+    count    = Column(Integer)
+    avg      = Column(Float)

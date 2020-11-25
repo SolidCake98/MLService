@@ -1,0 +1,59 @@
+============================= test session starts ==============================
+platform linux -- Python 3.8.2, pytest-6.0.1, py-1.9.0, pluggy-0.13.1 -- /home/danil/Project/MLService/backend/venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/danil/Project/MLService/backend
+plugins: cov-2.10.1, flask-1.0.0
+collecting ... collected 14 items
+
+tests/test_upload.py::test_read PASSED
+tests/test_upload.py::test_read_with_dirs PASSED
+tests/test_upload.py::test_not_valid_read PASSED
+tests/test_upload.py::test_download PASSED
+tests/test_upload.py::test_download_not_found PASSED
+tests/test_user.py::test_register_user PASSED
+tests/test_user.py::test_register_not_valid_password_user 400 {'error': 'Password must be at least 8 characters, conatain 1 number and 1 letter '}
+PASSED
+tests/test_user.py::test_register_not_valid_username_user 400 {'error': 'Username must be at least 5 characters and contain 1 letter'}
+PASSED
+tests/test_user.py::test_register_user_is_already_exist 400 {'error': 'User danil already exist'}
+PASSED
+tests/test_user.py::test_register_user_email_is_already_exist 400 {'error': 'Email some.email@server.com already registred'}
+PASSED
+tests/test_user.py::test_auth_user PASSED
+tests/test_user.py::test_auth_user_not_vaild_email 400 {'error': 'The username or password provided is incorrect.'}
+PASSED
+tests/test_user.py::test_auth_not_valid_name 400 {'error': 'The username or password provided is incorrect.'}
+PASSED
+tests/test_user.py::test_auth_not_valid_password 400 {'error': 'The username or password provided is incorrect.'}
+PASSED
+
+----------- coverage: platform linux, python 3.8.2-final-0 -----------
+Name                                             Stmts   Miss  Cover   Missing
+------------------------------------------------------------------------------
+application/__init__.py                              0      0   100%
+application/api/__init__.py                          0      0   100%
+application/api/dataset_controller.py               47     25    47%   19-21, 27-33, 38-41, 46-49, 54-58, 64-67
+application/api/media_controller.py                  8      2    75%   10-11
+application/api/user_controller.py                  40     21    48%   21-24, 30-33, 40-42, 47-52, 57-60
+application/app.py                                  29      0   100%
+application/config.py                               20      0   100%
+application/database.py                             86     33    62%   18-19, 23, 27-28, 31, 35-39, 44-56, 62, 68, 74, 80, 86, 92, 96, 104, 109, 117, 121, 129
+application/facades/__init__.py                      0      0   100%
+application/facades/abstract_facade.py              23      5    78%   21-22, 25, 28, 31
+application/facades/facades.py                      46     11    76%   32, 37, 40, 43, 50, 53, 59, 64, 69, 72, 77
+application/models.py                               97      0   100%
+application/schemas.py                              51     11    78%   54-73
+application/services/__init__.py                     0      0   100%
+application/services/dataset/__init__.py             0      0   100%
+application/services/dataset/create_records.py      74     53    28%   15, 25-26, 29-32, 36-42, 45-51, 54-67, 76-77, 80-89, 92-99, 108-109, 113-122, 125-132
+application/services/dataset/file_reader.py         60     38    37%   14, 20-30, 37-40, 45-49, 54-58, 63, 69-87
+application/services/dataset/read_csv.py            41     34    17%   8-9, 12-15, 18-42, 46-65
+application/services/dataset/upload_files.py        82     50    39%   12, 18, 28-29, 34-43, 54, 63, 66-68, 71-72, 83, 86-88, 91-93, 96-101, 107-110, 116-117, 120-121, 124-129, 132-136
+application/services/dataset_services.py           156     80    49%   107-109, 113-145, 149-150, 155-206, 211-215, 218, 224, 228-233, 237-241
+application/services/user_services.py               93      2    98%   89-90
+application/services/validate_service.py            51      8    84%   13, 37, 73, 76, 80-83
+------------------------------------------------------------------------------
+TOTAL                                             1004    373    63%
+
+
+============================= 14 passed in 27.43s ==============================

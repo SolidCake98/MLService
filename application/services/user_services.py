@@ -1,6 +1,7 @@
 from application import schemas, models
 from application.services.validate_service import (
-    UserValidateProcess, 
+    UserValidateProcess,
+    UsernameValidate,
     EmailValidate,
     PasswordValidate
 )
@@ -62,6 +63,7 @@ class RegistrationService:
         validate_user = UserValidateProcess()
 
         validate_user.register(
+            UsernameValidate(user.username),
             PasswordValidate(user.password),
             EmailValidate(user.email))
 

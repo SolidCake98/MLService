@@ -22,7 +22,7 @@ class PasswordValidate(Validate):
 
     def validate(self):
         if not re.match(self.valid_password_regex, self.password):
-            raise ValueError("Password mus be at least 8 characters, conatain 1 number and 1 letter ")
+            raise ValueError("Password must be at least 8 characters, conatain 1 number and 1 letter ")
 
 
 class EmailValidate(Validate):
@@ -35,6 +35,16 @@ class EmailValidate(Validate):
     def validate(self):
         if not re.match(self.valid_email_regex, self.email):
             raise ValueError("Incorrect email value")
+
+class UsernameValidate(Validate):
+    valid_username_regex = "^(?=.*[A-Za-z])[A-Za-z\d]{5,}$"
+
+    def __init__(self, username: str):
+        self.username = username
+
+    def validate(self):
+        if not re.match(self.valid_username_regex, self.username):
+            raise ValueError("Username must be at least 5 characters and contain 1 letter")
         
 
 class UserValidateProcess(Validate):

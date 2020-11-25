@@ -33,12 +33,39 @@ class DataSetPathStructure:
         alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ] 
         return sorted(data, key=alphanum_key)
 
+    def check_path_exists(self, path):
+        pass
+
+    def create_dir_struct(self, dir_list, from_pos, to_pos):
+        lst = []
+
+        for i, x in enumerate(dir_list[from_pos: to_pos]):
+
+            dir_info = {}
+
+            if os.path.isdir(os.path.join(self.path, x)):
+                dir_info['type'] = 'directory'
+                
+            else:
+                dir_info['type'] = 'file'
+
+            dir_info['id'] = self.pos + i
+            dir_info['name'] = os.path.basename(x)
+
+            lst.append(dir_info)
+        
+        return lst
+
     def read(self, offset = 20):
 
         res = {}
         lst = []
 
-        dir_list = self.sorted_alphanumeric(os.listdir(self.path))
+        try:
+            dir_list = self.sorted_alphanumeric(os.listdir(self.path))
+        except FileNotFoundError:
+            return 404, {'error': 'dataset not found'}
+
         count = len(dir_list)
 
         s_dir_list = sorted(dir_list, key= lambda x : not os.path.isdir(os.path.join(self.path, x)))
@@ -62,7 +89,7 @@ class DataSetPathStructure:
 
             lst.append(dir_info)
 
-        return res
+        return 200, res
         
 class DataSetDownloadService:
 
@@ -74,7 +101,9 @@ class DataSetDownloadService:
         
         z = zipstream.ZipFile(mode='w', compression=zipstream.ZIP_DEFLATED)
         pat = os.path.join(Config.DATASETS_ABS_PATH, path)
-
+        
+        if not os.path.exists(pat):
+            return 404, {'error': "Path didn't exist"}
         
         for root, dirs, files in os.walk(pat):
             for file in files:
@@ -84,7 +113,7 @@ class DataSetDownloadService:
 
         response = Response(z, mimetype='application/zip')
         response.headers['Content-Disposition'] = 'attachment; filename={}'.format('archive.zip')
-        return response
+        return 200, response
 
 class DataSetUploadService:
 
@@ -164,7 +193,7 @@ class DataSetUploadService:
             d_type = cr.DataSetTypeCreator(types, dataset)
             d_type.create()
 
-            dataset.is_loaded = Trueos.path
+            dataset.is_loaded = True
             facades.DataSetFacade().change(dataset)
 
         try:
@@ -192,13 +221,13 @@ class DataSetUploadService:
             thread_1 = Thread(target=write_dataset, kwargs={'upload_dir': upload_dir, 'dataset_id': dataset.id})
             thread_1.start() 
 
-            return {'message': 'file saved'}, 200
+            return 200, {'message': 'file saved'}
 
         except ValueError as err:
-            return {"error": str(err)}, 400
+            return 400, {"error": str(err)}
 
         except Exception as err:
-            return {"error": "Can't upload dataset"}, 500
+            return 500, {"error": "Can't upload dataset"}
 
 class DataSetReadFile:
 

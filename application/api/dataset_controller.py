@@ -17,7 +17,8 @@ class DataSetDownloadController(Resource):
 
     def get(self, user, data):
         d_service = DataSetDownloadService()
-        return d_service.download( user + "/" + data)
+        code, result = d_service.download( user + "/" + data)
+        return reuslt, code
 
 class DataSetUploadController(Resource):
 
@@ -28,7 +29,8 @@ class DataSetUploadController(Resource):
         j_data = json.load(request.files['document'])
 
         d_service = DataSetUploadService(j_data, current_user, data_set)
-        return d_service.upload()
+        code, result = d_service.upload()
+        return result, code
 
 class DataSetListController(Resource):
 
@@ -43,7 +45,8 @@ class DataSetDirReadController(Resource):
     def post(self):
         json = request.get_json()
         d_r_service = DataSetPathStructure(json)
-        return d_r_service.read()
+        code, result = d_r_service.read()
+        return result, code
 
 class DataSetFileReadController(Resource):
 
