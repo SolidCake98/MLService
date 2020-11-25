@@ -34,7 +34,7 @@ class DataSetPathStructure:
         return sorted(data, key=alphanum_key)
 
     def check_path_exists(self, path):
-        pass
+        return os.path.exists(path)
 
     def create_dir_struct(self, dir_list, from_pos, to_pos):
         lst = []
@@ -56,38 +56,26 @@ class DataSetPathStructure:
         
         return lst
 
+    def sort_dir_list(self, list_dir):
+        alpabec_dir_list = self.sorted_alphanumeric(list_dir)
+        s_dir_list = sorted(alpabec_dir_list, key= lambda x : not os.path.isdir(os.path.join(self.path, x)))
+        return s_dir_list
+
+
     def read(self, offset = 20):
 
         res = {}
         lst = []
 
-        try:
-            dir_list = self.sorted_alphanumeric(os.listdir(self.path))
-        except FileNotFoundError:
-            return 404, {'error': 'dataset not found'}
+        return 404, {'error': 'dataset not found'} if self.check_path_exists(self.path):
 
-        count = len(dir_list)
+        s_dir_list = self.sort_dir_list(os.listdirs(self.path))
+       
+        count = len(s_dir_list)
 
-        s_dir_list = sorted(dir_list, key= lambda x : not os.path.isdir(os.path.join(self.path, x)))
-
-        res['dir'] = lst
         res['next_pos'] = (self.pos + offset) if max(0, count - (self.pos + offset)) else 0
         res['count'] = max(0, count - (self.pos + offset))
-
-        for i, x in enumerate(s_dir_list[self.pos: self.pos + offset]):
-
-            dir_info = {}
-
-            if os.path.isdir(os.path.join(self.path, x)):
-                dir_info['type'] = 'directory'
-                
-            else:
-                dir_info['type'] = 'file'
-
-            dir_info['id'] = self.pos + i
-            dir_info['name'] = os.path.basename(x)
-
-            lst.append(dir_info)
+        res['dir'] = self.create_dir_struct(s_dir_list, self.pos, self.pos + offset)
 
         return 200, res
         
