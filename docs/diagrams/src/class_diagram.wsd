@@ -1,0 +1,204 @@
+@startuml auth_service
+skinparam class{
+    BackgroundColor White
+}
+
+interface RegistrationStrategy{
+    +(code, JSON) registrate()
+}
+
+interface AuthorizationStrategy{
+    +(code, JSON) authorizate()
+}
+
+class ContextReg{
+    -strategy: RegistrationStrategy
+    +(code, JSON) registrate()
+}
+
+class ContextAuth{
+    -strategy: AuthorizationStrategy
+    +(code, JSON) authorizate()
+}
+
+class RegistrationService{
+    -json: JSON
+    -g_facade: GroupFacade
+    -u_facad: UserFacade
+    -ug_facade: UserGroupFacade
+    +void __init__()
+    +(code, JSON) registrate()
+}
+
+class AuthorizationService{
+    -valid_email_regex: String
+    -json: JSON
+    -u_facad: UserFacade
+    -User get_user()
+    -User get_user_by_username()
+    -User get_user_by_email()
+    -void verify_password()
+    +void __init__()
+    +(code, JSON) athorizate()
+}
+
+class GenereteJWTService{
+    -json: JSON
+    -String generate_access_token()
+    -String generate_refresh_token()
+    +void __init__()
+    +{static} (a_token, r_token) create_jwt()
+}
+
+class UserAuthorization{
+    +JSON post()
+}
+
+class UserRegistration{
+    +JSON post()
+}
+
+class TokenRefresh{
+    +JSON post()
+}
+
+class Base
+class User{
+    +id: Integer
+    +username: String
+    +password: String
+    +email: String
+    +date_joined: DateTime
+    +last_login: DateTime
+    +groups: relationship
+}
+
+class Group{
+    +id: Integer
+    +name: String
+    +users: relationship
+}
+
+class UserGroup{
+    +id: Integer
+    +user_id: Integer
+    +group_id: Integer
+    +user: relationship
+    +group: relationship
+}
+
+abstract class AbstractFacade{
+    +void create()
+    +void change()
+    +void remove()
+    +Base get_entity()
+    +Base[] get_all()
+    +Base[] get_in_range()
+}
+
+class UserFacade{
+    +void __init__()
+    +User get_user_by_username()
+    +User get_user_by_email()
+}
+
+class GroupFacade{
+    +void __init__()
+    +Group get_group_by_name()
+}
+
+class UserGroupFacade{
+    +void __init__()
+    +UserGroup get_user_groups()
+}
+
+interface Validate{
+    +void validate()
+}
+
+class PasswordValidate{
+    -valid_password_regex: String
+    +void __init__()
+}
+
+class UsernameValidate{
+    -valid_username_regex: String
+    +void __init__()
+}
+
+class EmailValidate{
+    -valid_email_regex: String
+    +void __init__()
+}
+
+class UserValidateProcess{ 
+    -validation_list: List[Validate]
+    +void register()
+    +void validate()
+}
+
+class UserRegisterValidate{ 
+    -u_facade: UserFacade
+    -email: String
+    -username: String
+    +void validate()
+}
+
+interface Creator{
+    +Base create()
+}
+
+class UserCreator{
+    -data: JSON
+    -g_facade: GroupFacade
+    -u_facad: UserFacade
+    -ug_facade: UserGroupFacade
+    -User create_user()
+    -UserGroup create_user_group()
+    +User create()
+    -String generate_hash()
+}
+
+UserCreator --|> Creator
+
+TokenRefresh ..> "GenereteJWTService" :use
+UserRegistration ..> "ContextReg" :use
+UserAuthorization ..> "ContextAuth" :use
+
+ContextReg *-- "RegistrationStrategy"
+ContextAuth *-- "AuthorizationStrategy"
+Creator --* RegistrationService
+Creator ..> Base:use
+
+RegistrationStrategy <|-left- RegistrationService
+AuthorizationStrategy <|-right- AuthorizationService
+
+
+User --|> Base
+UserGroup --|> Base
+Group --|> Base
+
+Validate <|-- UsernameValidate
+Validate <|-- PasswordValidate
+Validate <|-- EmailValidate
+Validate <|-- UserRegisterValidate
+
+Validate -down-* UserValidateProcess
+
+
+
+UserFacade --|> AbstractFacade
+UserGroupFacade --|> AbstractFacade
+GroupFacade --|> AbstractFacade
+
+AbstractFacade <.. "Base" :use
+RegistrationService ..> "UserValidateProcess" :use
+
+
+AuthorizationService .up.> "GenereteJWTService" :use
+AuthorizationService *-- "UserFacade"
+RegistrationService *-- "UserFacade"
+RegistrationService *-- "UserGroupFacade"
+RegistrationService *-- "GroupFacade"
+
+@enduml

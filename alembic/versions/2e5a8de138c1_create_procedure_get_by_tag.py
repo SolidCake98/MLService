@@ -11,21 +11,24 @@ from application.database import ReplaceableObject
 
 # revision identifiers, used by Alembic.
 revision = '2e5a8de138c1'
-down_revision = '905c7387f4dd'
+down_revision = '395cbd3628b0'
 branch_labels = None
 depends_on = None
 
 find_by_tag = ReplaceableObject(
     "find_dataset_by_tag(tag_names character varying[])",
     """
-    RETURNS TABLE (id integer, dataset_name character varying, tag_name character varying) AS $$
+    RETURNS TABLE (id integer, dataset_name character varying) AS $$
     BEGIN
-        RETURN QUERY SELECT public.dataset_tag.dataset_id, public.dataset.name, public.tag.tag_name
-        FROM public.dataset_tag 
-        INNER JOIN public.dataset ON public.dataset.id = public.dataset_tag.dataset_id
-        INNER JOIN public.tag ON public.dataset_tag.tag_id = public.tag.id
-        WHERE public.tag.tag_name = ANY(tag_names)
-        ;
+        RETURN QUERY 
+        SELECT public.dataset.id, public.dataset.name
+        FROM public.dataset
+        WHERE NOT EXISTS 
+        (SELECT * FROM UNNEST(tag_names) EXCEPT
+        SELECT public.tag.tag_name FROM public.tag
+        JOIN public.dataset_tag ON public.tag.id = public.dataset_tag.tag_id
+        WHERE public.dataset_tag.dataset_id = public.dataset.id); 
+        
     END;
     $$ LANGUAGE plpgsql;
     """

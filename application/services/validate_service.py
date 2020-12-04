@@ -12,6 +12,20 @@ class Validate(ABC):
     def validate(self):
         pass
 
+class UserRegisterValidate(Validate):
+
+    def __init__(self, u_facade, username, email):
+        self.u_facade = u_facade
+        self.username = username
+        self.email = email
+
+    def validate(self):
+        if self.u_facade.get_user_by_username(self.username):
+            raise ValueError(f"User {self.username} already exist")
+
+        if self.u_facade.get_user_by_email(self.email):
+            raise ValueError(f"Email {self.email} already registred")
+
 
 class PasswordValidate(Validate):
 
@@ -47,7 +61,7 @@ class UsernameValidate(Validate):
             raise ValueError("Username must be at least 5 characters and contain 1 letter")
         
 
-class UserValidateProcess(Validate):
+class UserValidateProcess:
 
     def __init__(self):
         self.validation_list: List[Validate] = []

@@ -3,19 +3,47 @@ from application.services.validate_service import (
     UserValidateProcess,
     UsernameValidate,
     EmailValidate,
-    PasswordValidate
+    PasswordValidate,
+    UserRegisterValidate
 )
 from datetime import datetime, timedelta
 from application.facades.facades import UserFacade, GroupFacade, UserGroupFacade
+from application.services.create_records import Creator, UserCreator
 from flask_jwt_extended import (
     create_access_token, 
     create_refresh_token,
 )
 from passlib.hash import pbkdf2_sha256 as sha256
 import re
+from abc import ABC, abstractmethod
 
 
-class RegistrationService:
+class RegistrationStrategy(ABC):
+    @abstractmethod
+    def registrate():
+        pass
+
+class AuthorizationStrategy(ABC):
+    @abstractmethod
+    def authorizate():
+        pass
+
+class ContextReg:
+    
+    def __init__(self, strategy):
+        self.strategy = strategy
+
+    def registrate(self):
+        return self.strategy.registrate()
+
+class ContextAuth:
+    def __init__(self, strategy):
+        self.strategy = strategy
+
+    def authorizate(self):
+        return self.strategy.authorizate()
+
+class RegistrationService(RegistrationStrategy):
 
 
     def __init__(self, json):
@@ -24,74 +52,35 @@ class RegistrationService:
         self.u_facade  = UserFacade()
         self.ug_facade = UserGroupFacade()
 
-    def create_user(self):
-        data = schemas.UserSchema().load(data=self.json)
-
-        new_user = models.User(
-            username = data["username"],
-            email    = data["email"],
-            password = data["password"]
-        )
-
-
-        return new_user
-
-
-    def create_user_group(self, user: models.User, type_group: str):
-
-        user_group = models.UserGroup(
-            user  = user,
-            group = self.g_facade.get_group_by_name(type_group)
-        )
-
-        return user_group
-
-    def check_user(self, username, email):
-
-        if self.u_facade.get_user_by_username(username):
-            raise ValueError(f"User {username} already exist")
-
-        if self.u_facade.get_user_by_email(email):
-            raise ValueError(f"Email {email} already registred")
-
-    def generate_hash(self, password):
-        return sha256.hash(password)
-
     def registrate(self):
-        user          = self.create_user()
-        user_group    = self.create_user_group(user, "user")
+        data = schemas.UserSchema().load(data=self.json)
         validate_user = UserValidateProcess()
-
         validate_user.register(
-            UsernameValidate(user.username),
-            PasswordValidate(user.password),
-            EmailValidate(user.email))
+            UsernameValidate(data['username']),
+            PasswordValidate(data['password']),
+            EmailValidate(data['email']),
+            UserRegisterValidate(self.u_facade, data['username'], data['email'])
+        )
 
         try:
             validate_user.validate()
-            self.check_user(user.username, user.email)
         except ValueError as ex:
             return 400, {"error" : str(ex)}
-
-        user.password = self.generate_hash(user.password)
-
+        
         try:
-            self.u_facade.create(user)
-            self.ug_facade.create(user_group)
+            user = UserCreator(self.g_facade, self.ug_facade,self.u_facade, data).create()
             a_token, r_token = GenereteJWTService.create_jwt(user)
-
+    
             return 200, {
                 "message"       : f'User {user.username} was registred',
                 "access_token"  : a_token,
                 "refresh_token" : r_token
             }
-
         except:
             return 500, {"error": "Internal server error"}
 
-        
-class AuthorizationService:
-
+       
+class AuthorizationService(AuthorizationStrategy):
 
     valid_email_regex = "[^@]+@[^@]+\.[^@]+"
 
@@ -122,7 +111,7 @@ class AuthorizationService:
         if not sha256.verify(veryfied_pass, hash):
             raise ValueError("Incorrect password")
 
-    def athorizate(self):
+    def authorizate(self):
         data = schemas.UserSchema().load(data=self.json)
         try:
             user = self.get_user(data["username"])

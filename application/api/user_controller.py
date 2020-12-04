@@ -19,8 +19,8 @@ class UserRegistration(Resource):
     
     def post(self):
         json = request.get_json()
-        user_register = userv.RegistrationService(json)
-        code, message = user_register.registrate()
+        user_register_context = userv.ContextReg(userv.RegistrationService(json))
+        code, message = user_register_context.registrate()
         return message, code
 
 
@@ -28,8 +28,8 @@ class UserAuthorization(Resource):
 
     def post(self):
         json = request.get_json()
-        user_authorization = userv.AuthorizationService(json)
-        code, message = user_authorization.athorizate()
+        user_authorization_context = userv.ContextAuth(userv.AuthorizationService(json))
+        code, message = user_authorization_context.authorizate()
         return message, code
         
        

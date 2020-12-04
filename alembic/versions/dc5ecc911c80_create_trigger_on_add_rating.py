@@ -12,7 +12,7 @@ from application.database import ReplaceableObject
 
 # revision identifiers, used by Alembic.
 revision = 'dc5ecc911c80'
-down_revision = '2e5a8de138c1'
+down_revision = 'f149083566ab'
 branch_labels = None
 depends_on = None
 
@@ -51,15 +51,22 @@ before_dataset_rating = ReplaceableObject(
     """
     RETURNS TRIGGER AS $$
     DECLARE
-        rating_id int;
+        v1 int;
+        v2 int;
     BEGIN
-        SELECT id INTO STRICT rating_id FROM public.user_rating WHERE dataset_id = NEW.dataset_id AND user_id = NEW.user_id;
-        EXCEPTION
-            WHEN NO_DATA_FOUND THEN
-                RETURN NEW;
-        IF FOUND THEN 
+        v1 := (SELECT id FROM public.user_rating WHERE dataset_id = NEW.dataset_id AND user_id = NEW.user_id);
+        v2 := (SELECT owner_id FROM public.dataset 
+                WHERE public.dataset.owner_id = NEW.user_id AND public.dataset.id = NEW.dataset_id);
+
+        IF v2 is not null THEN 
+            RAISE EXCEPTION 'you can''t add review, because you''re are owner';
+        END IF;
+
+        IF v1 is not null THEN 
             RAISE EXCEPTION 'you can''t add review, because you''ve already added it';
         END IF;
+
+        RETURN NEW;
     END;
     $$ LANGUAGE plpgsql;
     """

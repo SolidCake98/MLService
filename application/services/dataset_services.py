@@ -4,7 +4,7 @@ from application.config import Config
 from application.facades import facades
 from application.services.validate_service import FilenameValidate
 from application.services.dataset import upload_files as up
-from application.services.dataset import create_records as cr
+from application.services import create_records as cr
 from application.services.dataset import read_csv as rcsv
 
 from flask import Response, send_from_directory
@@ -67,9 +67,11 @@ class DataSetPathStructure:
         res = {}
         lst = []
 
-        return 404, {'error': 'dataset not found'} if self.check_path_exists(self.path):
+        
+        if not self.check_path_exists(self.path):
+            return 404, {'error': 'dataset not found'}  
 
-        s_dir_list = self.sort_dir_list(os.listdirs(self.path))
+        s_dir_list = self.sort_dir_list(os.listdir(self.path))
        
         count = len(s_dir_list)
 

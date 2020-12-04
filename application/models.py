@@ -133,10 +133,12 @@ class UserDataset(Base):
     """
     __tablename__ = "user_dataset"
 
-    id       =  Column(Integer, primary_key=True)
-    username = Column(String)
-    name     = Column(String)
-    title    = Column(String)
+    id        =  Column(Integer, primary_key=True)
+    username  = Column(String)
+    name      = Column(String)
+    title     = Column(String)
+    size      = Column(Integer)
+    size_name = Column(String)
 
 
 class CountDataset(Base):

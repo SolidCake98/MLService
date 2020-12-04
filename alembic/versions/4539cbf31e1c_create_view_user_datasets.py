@@ -24,8 +24,12 @@ user_dataset_view = ReplaceableObject(
     select public.dataset.id,
     public.user.username,
     public.dataset.name, 
-    public.dataset.title 
-    FROM public.dataset JOIN public.user ON public.dataset.owner_id = public.user.id;
+    public.dataset.title,
+    public.dataset_meta.size,
+    public.dataset_meta.size_name
+    FROM public.dataset 
+    INNER JOIN public.user ON public.dataset.owner_id = public.user.id
+    INNER JOIN public.dataset_meta ON public.dataset.meta_id = public.dataset_meta.id;
     """
 )
 

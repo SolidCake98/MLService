@@ -1,5 +1,6 @@
 import os
 
+from passlib.hash import pbkdf2_sha256 as sha256
 from abc import ABC, abstractmethod
 from application import models
 from application.facades import facades
@@ -14,7 +15,38 @@ class Creator(ABC):
     def create():
         pass
 
-#TODO подумать над фабрикой
+
+class UserCreator(Creator):
+
+    def __init__(self, g_facade, ug_facade, u_facade, data):
+        self.data = data
+        self.g_facade = g_facade
+        self.ug_facade = ug_facade
+        self.u_facade = u_facade
+    
+    def generate_hash(self, password):
+        return sha256.hash(password)
+    
+    def create_user(self):
+        new_user = models.User(
+            username = self.data["username"],
+            email    = self.data["email"],
+            password = self.generate_hash(self.data["password"])
+        )
+        return new_user
+
+    def create_user_group(self, user: models.User, type_group: str):
+        user_group = models.UserGroup(
+            user  = user,
+            group = self.g_facade.get_group_by_name(type_group)
+        )
+        return user_group
+
+    def create(self):
+        user = self.create_user()
+        self.u_facade.create(user)
+        self.ug_facade.create(self.create_user_group(user, "user"))
+        return user
 
 class DataSetCreator(Creator):
     """
