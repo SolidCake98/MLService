@@ -5,6 +5,9 @@ Revises: 905c7387f4dd
 Create Date: 2020-11-23 15:56:52.124424
 
 """
+import sys
+sys.path = ['', '..'] + sys.path[1:]
+
 from alembic import op
 import sqlalchemy as sa
 from application.database import ReplaceableObject

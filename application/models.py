@@ -122,6 +122,7 @@ class UserRating(Base):
     rating       = Column(Float)
     is_favoritre = Column(Boolean, default=False)
     commenatary  = Column(Text)
+    create_time  = Column(DateTime,  default=func.now())
 
     user = relationship("User", back_populates="user_ratings")
     dataset = relationship("DataSet", back_populates="user_ratings")

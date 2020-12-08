@@ -5,6 +5,9 @@ Revises: 2e5a8de138c1
 Create Date: 2020-11-23 17:05:59.013807
 
 """
+import sys
+sys.path = ['', '..'] + sys.path[1:]
+
 from alembic import op
 import sqlalchemy as sa
 from application.database import ReplaceableObject
@@ -47,7 +50,7 @@ update_dataset_rating = ReplaceableObject(
 )
 
 before_dataset_rating = ReplaceableObject(
-    "before_dataset_rating()",
+    "before_WHERE public.dataset.name = NEW.namedataset_rating()",
     """
     RETURNS TRIGGER AS $$
     DECLARE

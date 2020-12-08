@@ -12,7 +12,7 @@ class Creator(ABC):
     """
 
     @abstractmethod
-    def create():
+    def create(self):
         pass
 
 

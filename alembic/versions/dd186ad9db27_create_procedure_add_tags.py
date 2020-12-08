@@ -5,6 +5,9 @@ Revises: dc5ecc911c80
 Create Date: 2020-11-28 17:53:12.913945
 
 """
+import sys
+sys.path = ['', '..'] + sys.path[1:]
+
 from alembic import op
 import sqlalchemy as sa
 from application.database import ReplaceableObject
@@ -26,13 +29,10 @@ add_tags = ReplaceableObject(
         t_id integer;
         t character varying;
     BEGIN
+        SELECT id INTO STRICT d_id FROM public.dataset WHERE id = data_id;
+        
         FOREACH t IN ARRAY tag_names LOOP
-
-            d_id := (SELECT id FROM public.dataset WHERE id = data_id);
-            IF d_id is null THEN
-                EXIT;
-            END IF;
-
+            
             d_id := (SELECT dataset_id FROM public.dataset_tag 
             WHERE public.dataset_tag.dataset_id = data_id 
             AND public.dataset_tag.tag_id = (SELECT id from public.tag WHERE tag_name = t));
@@ -40,7 +40,7 @@ add_tags = ReplaceableObject(
             t_id := (SELECT id FROM public.tag WHERE tag_name = t);
 
             IF (d_id is not null) OR (t_id is null) THEN
-                CONTINUE;
+                RAISE EXCEPTION 'can''t add tags';
             END IF;
 
             INSERT INTO public.dataset_tag (dataset_id, tag_id) 

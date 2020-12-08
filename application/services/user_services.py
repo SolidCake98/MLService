@@ -20,12 +20,12 @@ from abc import ABC, abstractmethod
 
 class RegistrationStrategy(ABC):
     @abstractmethod
-    def registrate():
+    def registrate(self):
         pass
 
 class AuthorizationStrategy(ABC):
     @abstractmethod
-    def authorizate():
+    def authorizate(self):
         pass
 
 class ContextReg:
