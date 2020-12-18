@@ -36,16 +36,14 @@ add_tags = ReplaceableObject(
             d_id := (SELECT dataset_id FROM public.dataset_tag 
             WHERE public.dataset_tag.dataset_id = data_id 
             AND public.dataset_tag.tag_id = (SELECT id from public.tag WHERE tag_name = t));
-
             t_id := (SELECT id FROM public.tag WHERE tag_name = t);
-
             IF (d_id is not null) OR (t_id is null) THEN
                 RAISE EXCEPTION 'can''t add tags';
             END IF;
-
             INSERT INTO public.dataset_tag (dataset_id, tag_id) 
             VALUES(data_id, t_id);
         END LOOP;
+        
     END;
     $$ LANGUAGE plpgsql;
     """

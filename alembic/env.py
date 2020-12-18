@@ -28,7 +28,7 @@ target_metadata = Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
-view_name = ["user_dataset", "count_dataset"]
+view_name = ["user_dataset", "count_dataset", "rating_last_month"]
 
 def include_object(object, name, type_, reflected, compare_to):
     if (name in view_name and type_ == "table"):

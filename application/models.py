@@ -15,9 +15,9 @@ class User(Base):
     date_joined = Column(DateTime,   default=func.now())
     last_login  = Column(DateTime,   nullable=True)
 
-    groups       = relationship("UserGroup", back_populates="user", cascade="all, delete-orphan, delete")
+    groups       = relationship("UserGroup", back_populates="user", cascade="all, delete")
     user_ratings = relationship("UserRating", back_populates="user", cascade="all, delete")
-    datasets     = relationship("DataSet",   back_populates="user", cascade="all, delete-orphan, delete")
+    datasets     = relationship("DataSet",   back_populates="user", cascade="all, delete")
 
 
 class Group(Base):
@@ -60,6 +60,9 @@ class DataSet(Base):
     dataset_meta = relationship("DataSetMeta", back_populates="dataset", cascade="all, delete", lazy='subquery')
     file_types = relationship("DataSetType", back_populates="dataset", cascade="all, delete-orphan, delete")
 
+    def __repr__(self):
+        return str(self.id)
+
 
 class DataSetMeta(Base):
     __tablename__ = "dataset_meta"
@@ -100,6 +103,9 @@ class Tag(Base):
     tag_name = Column(String(30))
 
     datasets = relationship("DataSetTag" , back_populates="tag")
+
+    def __repr__(self):
+        return str(self.tag_name)
 
 
 class DataSetTag(Base):
@@ -150,5 +156,18 @@ class CountDataset(Base):
 
     id       =  Column(Integer, primary_key=True)
     username = Column(String)
+    count    = Column(Integer)
+    avg      = Column(Float)
+
+
+class RatingDataSetLastMonth(Base):
+    """
+    It's a view
+    """
+    __tablename__ = "rating_last_month"
+
+    id       = Column(Integer, primary_key=True)
+    name     = Column(String)
+    title    = Column(String)
     count    = Column(Integer)
     avg      = Column(Float)

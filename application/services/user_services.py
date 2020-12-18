@@ -7,7 +7,7 @@ from application.services.validate_service import (
     UserRegisterValidate
 )
 from datetime import datetime, timedelta
-from application.facades.facades import UserFacade, GroupFacade, UserGroupFacade
+from application.facades.facades import UserFacade, GroupFacade, UserGroupFacade, CountDatasetFacade
 from application.services.create_records import Creator, UserCreator
 from flask_jwt_extended import (
     create_access_token, 
@@ -16,6 +16,7 @@ from flask_jwt_extended import (
 from passlib.hash import pbkdf2_sha256 as sha256
 import re
 from abc import ABC, abstractmethod
+import socket
 
 
 class RegistrationStrategy(ABC):
@@ -44,7 +45,6 @@ class ContextAuth:
         return self.strategy.authorizate()
 
 class RegistrationService(RegistrationStrategy):
-
 
     def __init__(self, json):
         self.json      = json
@@ -101,6 +101,7 @@ class AuthorizationService(AuthorizationStrategy):
             raise ValueError(f"Username {username}  doesn't exist")
         return user
 
+
     def get_user_by_email(self, email):
         user = self.u_facade.get_user_by_email(email)
         if not user:
@@ -122,7 +123,9 @@ class AuthorizationService(AuthorizationStrategy):
 
             return 200, {
                 'message': f'Logged in as {user.username}',
+                'id': user.id,
                 'username': user.username,
+                'roles': [x.group.name for x in user.groups],   
                 'access_token': a_token,
                 'refresh_token': r_token
             }
@@ -152,3 +155,53 @@ class GenereteJWTService:
         refresh_token = jwt.generate_refresh_token()
 
         return access_token, refresh_token        
+
+class UserInfoService:
+    local_ip = socket.gethostbyname(socket.gethostname())
+
+    uri_to_default_avatar = f'http://192.168.103:5000/api/v1/user/media/default'
+
+    def __init__(self, id):
+        self.user = UserFacade().get_entity(id)
+
+    def get_user_stats(self):
+        stats = CountDatasetFacade().get_entity(self.user.id)
+        dump = schemas.CountDataSetSchema().dump(stats)
+        return dump
+
+    def get_user_dataset(self):
+        datasets = schemas.DataSetSchema(many=True).dump(self.user.datasets)
+        return datasets
+
+    def get_user_profile(self):
+        return {
+            'stats': self.get_user_stats(),
+            'datasets': self.get_user_dataset(),
+            'user': schemas.UserSchema(exclude=["password"]).dump(self.user),
+            'avatar': self.uri_to_default_avatar,
+            'groups': schemas.UserGroupsSchema(many=True).dump(self.user.groups)
+        }
+
+    @classmethod
+    def get_excluded_groups(self, u_id):
+        groups = GroupFacade().get_excluded_groups(u_id)
+        return schemas.GroupSchema(many=True).dump(groups)
+
+    @classmethod
+    def get_all_user_profiles(self):
+        users = UserFacade().get_all()
+        result = [
+            {'user' : schemas.UserSchema(exclude=["password"]).dump(u),
+            'stats' : schemas.CountDataSetSchema().dump(CountDatasetFacade().get_entity(u.id)),
+            'groups': schemas.UserGroupsSchema(many=True).dump(u.groups)
+            } for u in users
+        ]
+        return result
+
+    @classmethod
+    def add_user_to_group(self, admin, username, groupname):
+        # try:
+        UserGroupFacade().add_user_to_group(admin, username, groupname)
+        return {'message': 'success'}, 200
+        # except Exception as ex:
+        #     return {'error' : str(ex)}, 500

@@ -5,12 +5,15 @@ from application.facades.facades import UserFacade, UserGroupFacade, GroupFacade
 from application.services import user_services as userv
 from application import schemas as sc
 
+
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
     jwt_refresh_token_required, 
     get_jwt_identity, 
-    get_raw_jwt)
+    get_raw_jwt,
+    jwt_required
+)
 
 from application import schemas
 
@@ -51,6 +54,24 @@ class UserController(Resource):
         user_schema = sc.UserSchema(only = ("id", "username"))
         return user_schema.dump(user)
 
+class UserProfileController(Resource):
+
+    def get(self, user_id):
+        profile = userv.UserInfoService(user_id).get_user_profile()
+        return profile
+
+class UserProfileListController(Resource):
+
+    def get(self):
+        profiles = userv.UserInfoService.get_all_user_profiles()
+        return profiles
+
+class UserGroupExcludedController(Resource):
+
+    def get(self, user_id):
+        groups = userv.UserInfoService.get_excluded_groups(user_id)
+        return groups
+
 class UserListController(Resource):
 
     def get(self):
@@ -58,3 +79,15 @@ class UserListController(Resource):
         users = u_facade.get_all()
         user_schema = sc.UserSchema(many=True, only=("id", "username", "date_joined"))
         return user_schema.dump(users)
+
+class UserGroupAddController(Resource):
+
+    @jwt_required
+    def post(self):
+        current_user = get_jwt_identity()
+        json = request.get_json()
+        res, code = userv.UserInfoService.add_user_to_group(
+            current_user['username'], 
+            json['username'], 
+            json['groupname'])
+        return res, code

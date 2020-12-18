@@ -1,7 +1,6 @@
 from application.services import user_services
 from application.facades import facades
-from passlib.hash import pbkdf2_sha256 as sha256
-from werkzeug.datastructures import FileStorage
+import application.models as m
 
 json_r = {
         "username": "danil",
@@ -16,12 +15,13 @@ json_a = {
 
 
 def register_user(json):
-    reg = user_services.RegistrationService(json)
-    return reg.registrate()
+    user_register_context = user_services.ContextReg(user_services.RegistrationService(json))
+    facades.GroupFacade().create(m.Group(name = "user"))
+    return user_register_context.registrate()
 
 def auth_user(json):
-    auth = user_services.AuthorizationService(json)
-    code, response = auth.athorizate()
+    auth = user_services.ContextAuth(user_services.AuthorizationService(json))
+    code, response = auth.authorizate()
     return code, response
 
 

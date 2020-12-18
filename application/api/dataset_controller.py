@@ -20,6 +20,20 @@ class DataSetDownloadController(Resource):
         code, result = d_service.download( user + "/" + data)
         return reuslt, code
 
+
+#TODO do this
+class DataSetAddTags(Resource):
+    @jwt_required
+    def post(self, name):
+        current_user = get_jwt_identity()
+        json = request.get_json()
+
+        dataId = facades.DataSetFacade().get_dataset_by_name(name).id
+
+        d = facades.DataSetTagFacade()
+        d.add_tags(dataId, json['tags'])
+        return {'result': 'success'}
+
 class DataSetUploadController(Resource):
 
     @jwt_required
@@ -35,10 +49,47 @@ class DataSetUploadController(Resource):
 class DataSetListController(Resource):
 
     def get(self): 
-        d_facade = facades.DataSetFacade()
-        datasets = d_facade.get_all()
+        datasets = facades.DataSetFacade().get_all()
         dataset_schema = sc.DataSetSchema(many=True)
         return dataset_schema.dump(datasets)
+
+class DataSetListPopularController(Resource):
+
+    def get(self): 
+        datasets = facades.DataSetFacade().get_dataset_ordered_by_last_month()
+        dataset_schema = sc.DataSetSchema(many=True)
+        return dataset_schema.dump(datasets)
+
+class DataSetListNewController(Resource):
+
+    def get(self): 
+        datasets = facades.DataSetFacade().get_dataset_ordered_by_data()
+        dataset_schema = sc.DataSetSchema(many=True)
+        return dataset_schema.dump(datasets)
+
+class DataSetListWordTitleController(Resource):
+
+    def post(self):
+        json = request.get_json()
+        datasets = facades.DataSetFacade().get_with_similarity_title(json['word'])
+        dataset_schema = sc.DataSetSchema(many=True)
+        return dataset_schema.dump(datasets)
+
+class DataSetListTagController(Resource):
+
+    def post(self):
+        json = request.get_json()
+        datasets = facades.DataSetFacade().get_dataset_by_tags(json['tags'])
+        dataset_schema = sc.DataSetSchema(many=True)
+        return dataset_schema.dump(datasets)
+
+class TagListWordNameController(Resource):
+
+    def post(self):
+        json = request.get_json()
+        tags = facades.TagFacade().get_with_similarity_tag(json['word'])
+        tag_schema = sc.TagSchema(many=True)
+        return tag_schema.dump(tags)
 
 class DataSetDirReadController(Resource):
 
@@ -65,3 +116,13 @@ class DataSetController(Resource):
         dataset = d_facade.get_dataset_by_user_and_data(user, data)
         dataset_schema = sc.DataSetSchema()
         return dataset_schema.dump(dataset)
+
+class DataSetListUserController(Resource):
+
+    @jwt_required
+    def get(self):
+        current_user = get_jwt_identity()
+        
+        facades.DataSetFacade().get_with_similarity_title("test");
+        user = facades.UserFacade().get_entity(current_user['id'])
+        return sc.DataSetSchema(many=True).dump(user.datasets)

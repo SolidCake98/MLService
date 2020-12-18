@@ -3,6 +3,7 @@ import application.services.dataset.read_csv as rcsv
 import json
 import os
 import magic
+import socket
 
 from application.config import Config
 
@@ -31,9 +32,11 @@ class ReadCSVFile(ReadFile):
 
 class ReadIMGFile(ReadFile):
 
-    uri_to_img = 'http://192.168.0.105:5000/api/v1/dataset/img/'
+
+    uri_to_img = 'http://192.168.103:5000/api/v1/dataset/img/'
 
     def read(self, path, pos):
+        print(self.uri_to_img)
         response = {}
         response['type'] = 'img'
         response['data'] = self.uri_to_img + path
