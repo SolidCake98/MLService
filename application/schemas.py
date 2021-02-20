@@ -74,9 +74,21 @@ class DataSetTagSchema(Schema):
     id  = fields.Integer()
     tag = fields.Nested(TagSchema)
 
+class UserRatingSchema(Schema):
+    id = fields.Int(dump_only=True)
+    rating = fields.Float()
+    commenatary = fields.String()
+    create_time = fields.DateTime()
+    user = fields.Nested(UserSchema, only=['username']  )
+
+    since_created = fields.Method("get_days_since_created")
+
+    def get_days_since_created(self, obj):
+        return day_since(obj.create_time)
+
 class DataSetSchema(Schema):
     id          = fields.Int(dump_only=True)
-    name        = fields.String()
+    name        = fields.String()   
     title       = fields.String()
     description = fields.String()
     date_load   = fields.DateTime()
@@ -84,6 +96,7 @@ class DataSetSchema(Schema):
 
     user         = fields.Nested(UserSchema, only=('id', 'username'))
     dataset_meta = fields.Nested(DataSetMetaSchema)
+    user_ratings = fields.Nested(UserRatingSchema, many=True)
 
     file_types   = fields.Nested(DataSetTypeSchema, many=True)
     tags         = fields.Nested(DataSetTagSchema, many=True)

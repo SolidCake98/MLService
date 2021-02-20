@@ -21,17 +21,14 @@ class DataSetDownloadController(Resource):
         return reuslt, code
 
 
-#TODO do this
 class DataSetAddTags(Resource):
     @jwt_required
-    def post(self, name):
+    def post(self):
         current_user = get_jwt_identity()
         json = request.get_json()
 
-        dataId = facades.DataSetFacade().get_dataset_by_name(name).id
-
         d = facades.DataSetTagFacade()
-        d.add_tags(dataId, json['tags'])
+        d.add_tags(json['id'], json['tags'])
         return {'result': 'success'}
 
 class DataSetUploadController(Resource):
@@ -122,7 +119,18 @@ class DataSetListUserController(Resource):
     @jwt_required
     def get(self):
         current_user = get_jwt_identity()
-        
         facades.DataSetFacade().get_with_similarity_title("test");
         user = facades.UserFacade().get_entity(current_user['id'])
         return sc.DataSetSchema(many=True).dump(user.datasets)
+
+class DataSetUserRatingController(Resource):
+
+    @jwt_required
+    def post(self):
+        current_user = get_jwt_identity()
+        json = request.get_json()
+        user_rating = models.UserRating(dataset_id=json['id'], \
+            rating=json['rating'], commenatary=json['commentary'],
+            user_id=current_user['id'])
+        facades.UserRatingFacade().create(user_rating)
+        return {'result': 'success'}, 200

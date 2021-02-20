@@ -129,3 +129,8 @@ class DataSetTypeFacade(AbstractFacade):
 class CountDatasetFacade(AbstractFacade):
     def __init__(self):
         super().__init__(models.CountDataset)
+
+
+class UserRatingFacade(AbstractFacade):
+    def __init__(self):
+        super().__init__(models.UserRating)

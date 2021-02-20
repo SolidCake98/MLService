@@ -159,7 +159,7 @@ class GenereteJWTService:
 class UserInfoService:
     local_ip = socket.gethostbyname(socket.gethostname())
 
-    uri_to_default_avatar = f'http://192.168.103:5000/api/v1/user/media/default'
+    uri_to_default_avatar = f'http://localhost:5000/api/v1/user/media/default'
 
     def __init__(self, id):
         self.user = UserFacade().get_entity(id)

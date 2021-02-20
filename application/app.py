@@ -25,7 +25,8 @@ from application.api.dataset_controller import (
     DataSetListUserController,
     DataSetListWordTitleController,
     TagListWordNameController,
-    DataSetListTagController
+    DataSetListTagController,
+    DataSetUserRatingController
 )
 
 from application.api.media_controller import DataSetImageController, UserDefaultAvatar
@@ -63,6 +64,7 @@ def create_app(config_name):
     api.add_resource(DataSetListUserController, '/api/v1/dataset/owner')
     api.add_resource(DataSetListWordTitleController, '/api/v1/dataset/search')
     api.add_resource(DataSetListTagController, '/api/v1/dataset/search/tag')
+    api.add_resource(DataSetUserRatingController, '/api/v1/dataset/rating')
 
     api.add_resource(TagListWordNameController, '/api/v1/dataset/tag')
 
@@ -70,7 +72,7 @@ def create_app(config_name):
     api.add_resource(DataSetDirReadController, '/api/v1/dataset/dir')
     api.add_resource(DataSetFileReadController, '/api/v1/dataset/file')
     api.add_resource(DataSetImageController, '/api/v1/dataset/img/<path:path>')
-    api.add_resource(DataSetAddTags, '/api/v1/dataset/add_tags/<name>')
+    api.add_resource(DataSetAddTags, '/api/v1/dataset/add_tags')
 
 
     @app.teardown_appcontext

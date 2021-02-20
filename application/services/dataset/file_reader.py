@@ -11,7 +11,7 @@ from application.config import Config
 class ReadFile(ABC):
 
     @abstractmethod
-    def read(path):
+    def read(self, path):
         pass
 
 class ReadCSVFile(ReadFile):

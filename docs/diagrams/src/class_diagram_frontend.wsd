@@ -1,0 +1,177 @@
+@startuml auth_service
+skinparam class{
+    BackgroundColor White
+}
+
+class App{
+    
+}
+
+class SideBarItems{
+    
+}
+
+class SideBar {
+
+}
+
+class NavBar {
+
+}
+
+class UnloggedNavbarLinks {
+
+}
+
+class UserNavbarLinks {
+
+}
+
+class UserService {
+
+}
+
+class UploadService {
+
+}
+
+class DataSetSrvice {
+
+}
+
+class AuthService {
+
+}
+
+class Home {
+
+}
+
+class Profile {
+
+}
+
+class ProfilePublic {
+
+}
+
+class Upload {
+
+}
+
+class SearchHead {
+
+}
+
+class HeaderButton {
+
+}
+
+class DataSetListHeader {
+
+}
+
+class DataSetListComponent {
+
+}
+
+class DataSetList {
+
+}
+
+class DataSetList {
+
+}
+
+class DataSetItem {
+
+}
+
+class Login {
+
+}
+
+class Logup {
+
+}
+
+class DataSet{
+
+}
+
+class DataSetDirItem{
+
+}
+
+class DataSetDirList{
+    
+}
+
+class DataSetFile{
+    
+}
+
+class DataSetHeader{
+    
+}
+
+class DataSetTable{
+    
+}
+
+class DataSetInfo{
+    
+}
+
+class DataSetRating{
+    
+}
+
+class LayoutMain {
+
+}
+
+LayoutMain *--NavBar
+LayoutMain *-- SideBar
+
+NavBar *-- UserNavbarLinks
+NavBar *-- UnloggedNavbarLinks
+
+SideBar *-- SideBarItems
+
+App *-- LayoutMain
+App *-- ProfilePublic
+App *-- Home
+App *-- DataSetList
+App *-- DataSet
+App *-- Login
+App *-- Logup
+App *-- Register
+
+Home *-- Profile
+Profile *-- DataSetListComponent
+ProfilePublic *-- Profile
+
+DataSetList *-- Upload
+DataSetList *-- SearchHead
+DataSetList *-- DataSetListHeader
+DataSetList *-- DataSetListComponent
+
+DataSetListComponent *-- DataSetItem
+
+DataSetListHeader *-- HeaderButton
+
+DataSet *-- DataSetInfo
+DataSet *-- DataSetDirList
+DataSet *-- DataSetFile
+DataSet *-- DataSetRating
+
+DataSetDirList *-- DataSetDirItem
+
+DataSetFile *-- DataSetHeader
+DataSetFile *-- DataSetTable
+
+
+
+
+@enduml

@@ -8,13 +8,13 @@ import zipfile
 class AddFile(ABC):
 
     @abstractmethod
-    def add():
+    def add(self):
         pass
 
 class UploadFile(ABC):
 
     @abstractmethod
-    def upload():
+    def upload(self):
         pass
 
 
@@ -50,7 +50,7 @@ class Extractor(ABC):
     """
 
     @abstractmethod
-    def extract():
+    def extract(self):
         pass
 
 
@@ -101,7 +101,7 @@ class UploadZipArchive(BaseFile, UploadFile, AddFile, Extractor):
         os.remove(file_path)
 
 
-class UploadCreator():
+class UploadCreator:
 
     def __init__(self, upload_dir, file):
         self.upload_dir = upload_dir
