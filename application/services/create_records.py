@@ -48,6 +48,7 @@ class UserCreator(Creator):
         self.ug_facade.create(self.create_user_group(user, "user"))
         return user
 
+
 class DataSetCreator(Creator):
     """
     Create record of dataset
@@ -112,11 +113,8 @@ class DataSetTypeCreator(Creator):
         type_ar = []
 
         for t in self.types:
-            try:
-                type_d = facades.FileTypeFacade().get_type_by_name(t)
-                type_ar.append(type_d)
-            except:
-                raise Exception("Type doesn't allowes")
+            type_d = facades.FileTypeFacade().get_type_by_name(t)
+            type_ar.append(type_d)
 
         return type_ar
 
@@ -139,7 +137,6 @@ class DataSetTagCreator(Creator):
     def __init__(self, dataset, data):
         self.dataset = dataset
         self.data = data
-
 
     def __get_tags(self):
         t_facade = facades.TagFacade()

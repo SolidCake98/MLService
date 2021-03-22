@@ -24,10 +24,12 @@ class RegistrationStrategy(ABC):
     def registrate(self):
         pass
 
+
 class AuthorizationStrategy(ABC):
     @abstractmethod
     def authorizate(self):
         pass
+
 
 class ContextReg:
     
@@ -37,12 +39,14 @@ class ContextReg:
     def registrate(self):
         return self.strategy.registrate()
 
+
 class ContextAuth:
     def __init__(self, strategy):
         self.strategy = strategy
 
     def authorizate(self):
         return self.strategy.authorizate()
+
 
 class RegistrationService(RegistrationStrategy):
 
@@ -65,19 +69,16 @@ class RegistrationService(RegistrationStrategy):
         try:
             validate_user.validate()
         except ValueError as ex:
-            return 400, {"error" : str(ex)}
-        
-        try:
-            user = UserCreator(self.g_facade, self.ug_facade,self.u_facade, data).create()
-            a_token, r_token = GenereteJWTService.create_jwt(user)
-    
-            return 200, {
-                "message"       : f'User {user.username} was registred',
-                "access_token"  : a_token,
-                "refresh_token" : r_token
-            }
-        except:
-            return 500, {"error": "Internal server error"}
+            return 400, {"error": str(ex)}
+
+        user = UserCreator(self.g_facade, self.ug_facade,self.u_facade, data).create()
+        a_token, r_token = GenereteJWTService.create_jwt(user)
+
+        return 200, {
+            "message"       : f'User {user.username} was registred',
+            "access_token"  : a_token,
+            "refresh_token" : r_token
+        }
 
        
 class AuthorizationService(AuthorizationStrategy):
@@ -94,13 +95,11 @@ class AuthorizationService(AuthorizationStrategy):
         else:
             return self.get_user_by_email(param)
 
-
     def get_user_by_username(self, username):
         user = self.u_facade.get_user_by_username(username)
         if not user:
             raise ValueError(f"Username {username}  doesn't exist")
         return user
-
 
     def get_user_by_email(self, email):
         user = self.u_facade.get_user_by_email(email)
@@ -118,6 +117,7 @@ class AuthorizationService(AuthorizationStrategy):
             user = self.get_user(data["username"])
             self.verify_password(data['password'], user.password)
             a_token, r_token = GenereteJWTService.create_jwt(user)
+            
             user.last_login = datetime.now()
             self.u_facade.change(user)
 
@@ -130,7 +130,7 @@ class AuthorizationService(AuthorizationStrategy):
                 'refresh_token': r_token
             }
 
-        except ValueError as ex:
+        except ValueError:
             return 400, {"error" : "The username or password provided is incorrect."} 
      
 
@@ -155,6 +155,7 @@ class GenereteJWTService:
         refresh_token = jwt.generate_refresh_token()
 
         return access_token, refresh_token        
+
 
 class UserInfoService:
     local_ip = socket.gethostbyname(socket.gethostname())
@@ -183,12 +184,12 @@ class UserInfoService:
         }
 
     @classmethod
-    def get_excluded_groups(self, u_id):
+    def get_excluded_groups(cls, u_id):
         groups = GroupFacade().get_excluded_groups(u_id)
         return schemas.GroupSchema(many=True).dump(groups)
 
     @classmethod
-    def get_all_user_profiles(self):
+    def get_all_user_profiles(cls):
         users = UserFacade().get_all()
         result = [
             {'user' : schemas.UserSchema(exclude=["password"]).dump(u),
@@ -199,7 +200,7 @@ class UserInfoService:
         return result
 
     @classmethod
-    def add_user_to_group(self, admin, username, groupname):
+    def add_user_to_group(cls, admin, username, groupname):
         # try:
         UserGroupFacade().add_user_to_group(admin, username, groupname)
         return {'message': 'success'}, 200

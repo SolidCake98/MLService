@@ -1,8 +1,9 @@
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, DateTime, func, ForeignKey, Text, Boolean, Float, Enum
-from passlib.hash import pbkdf2_sha256 as sha256
-
 from application.database import Base
+
+CASCADE_DELETE = "all, delete"
+
 
 class User(Base):
     __tablename__ = "user"
@@ -15,9 +16,9 @@ class User(Base):
     date_joined = Column(DateTime,   default=func.now())
     last_login  = Column(DateTime,   nullable=True)
 
-    groups       = relationship("UserGroup", back_populates="user", cascade="all, delete")
-    user_ratings = relationship("UserRating", back_populates="user", cascade="all, delete")
-    datasets     = relationship("DataSet",   back_populates="user", cascade="all, delete")
+    groups       = relationship("UserGroup", back_populates="user", cascade=CASCADE_DELETE)
+    user_ratings = relationship("UserRating", back_populates="user", cascade=CASCADE_DELETE)
+    datasets     = relationship("DataSet",   back_populates="user", cascade=CASCADE_DELETE)
 
 
 class Group(Base):
@@ -54,11 +55,11 @@ class DataSet(Base):
     is_loaded   = Column(Boolean, default=False)
 
     user = relationship("User", back_populates="datasets")
-    user_ratings = relationship("UserRating", back_populates="dataset", cascade="all, delete")
+    user_ratings = relationship("UserRating", back_populates="dataset", cascade=CASCADE_DELETE)
 
-    tags = relationship("DataSetTag" , back_populates="dataset", cascade="all, delete, delete-orphan")
-    dataset_meta = relationship("DataSetMeta", back_populates="dataset", cascade="all, delete", lazy='subquery')
-    file_types = relationship("DataSetType", back_populates="dataset", cascade="all, delete-orphan, delete")
+    tags = relationship("DataSetTag" , back_populates="dataset", cascade=CASCADE_DELETE)
+    dataset_meta = relationship("DataSetMeta", back_populates="dataset", cascade=CASCADE_DELETE, lazy='subquery')
+    file_types = relationship("DataSetType", back_populates="dataset", cascade=CASCADE_DELETE)
 
     def __repr__(self):
         return str(self.id)

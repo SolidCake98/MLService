@@ -9,9 +9,7 @@ from application import schemas as sc
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
-    jwt_refresh_token_required, 
     get_jwt_identity, 
-    get_raw_jwt,
     jwt_required
 )
 
@@ -38,11 +36,12 @@ class UserAuthorization(Resource):
        
 class TokenRefresh(Resource):
 
-    @jwt_refresh_token_required
+    @jwt_required(refresh=True)
     def post(self):
         current_user = get_jwt_identity()
         access_token = userv.GenereteJWTService(current_user).generate_access_token()
         return {'access_token': access_token}
+
 
 class UserController(Resource):
 
@@ -51,8 +50,9 @@ class UserController(Resource):
         user = u_facade.get_entity(user_id)
         if not user:
             return {"error": "User doesn't exist"}, 400
-        user_schema = sc.UserSchema(only = ("id", "username"))
+        user_schema = sc.UserSchema(only=("id", "username"))
         return user_schema.dump(user)
+
 
 class UserProfileController(Resource):
 
@@ -60,17 +60,20 @@ class UserProfileController(Resource):
         profile = userv.UserInfoService(user_id).get_user_profile()
         return profile
 
+
 class UserProfileListController(Resource):
 
     def get(self):
         profiles = userv.UserInfoService.get_all_user_profiles()
         return profiles
 
+
 class UserGroupExcludedController(Resource):
 
     def get(self, user_id):
         groups = userv.UserInfoService.get_excluded_groups(user_id)
         return groups
+
 
 class UserListController(Resource):
 
@@ -80,9 +83,10 @@ class UserListController(Resource):
         user_schema = sc.UserSchema(many=True, only=("id", "username", "date_joined"))
         return user_schema.dump(users)
 
+
 class UserGroupAddController(Resource):
 
-    @jwt_required
+    @jwt_required()
     def post(self):
         current_user = get_jwt_identity()
         json = request.get_json()

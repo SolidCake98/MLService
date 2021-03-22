@@ -1,7 +1,6 @@
 import os
 import json
 
-
 APP_ENV_VAL = "development"
 
 def set_env(variable, default):

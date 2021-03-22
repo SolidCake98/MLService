@@ -1,7 +1,8 @@
 import pandas as pd
 import re
 
-#TODO посмотреть на библиотеку dask!!! и попытаться сравнить скорость обработки
+
+# TODO посмотреть на библиотеку dask!!! и попытаться сравнить скорость обработки
 class ReadCSVFile:
 
     def __init__(self, path, chunk_size = 5000):
@@ -23,9 +24,9 @@ class ReadCSVFile:
         lines = []
         
         if pos == 0:
-            line = fp.readline()
+            fp.readline()
                 
-        for i in range(chunk):
+        for _ in range(chunk):
             line = fp.readline()
             if line == "":
                 break

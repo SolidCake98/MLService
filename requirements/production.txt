@@ -9,3 +9,4 @@ alembic
 zipstream-new
 pandas
 python-magic
+redis

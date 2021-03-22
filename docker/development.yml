@@ -22,7 +22,9 @@ services:
     environment:
       FLASK_ENV: ${FLASK_ENV}
       FLASK_CONFIG: ${FLASK_CONFIG}
-    command: ./manage.py flask run --host 0.0.0.0
+      # FLASK_APP: ./main.py
+    command: ./manage.py flask run --host 0.0.0.0  --port 5000
+    # flask run --host 0.0.0.0  --port 5000
     volumes:
       - ${PWD}:/usr/src/app/
     ports:

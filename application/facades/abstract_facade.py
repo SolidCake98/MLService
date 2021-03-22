@@ -1,6 +1,6 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 from application.database import db_session, Base
-from application.models import User
+
 
 class AbstractFacade(ABC):
 

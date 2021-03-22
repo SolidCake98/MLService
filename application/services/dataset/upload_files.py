@@ -4,12 +4,12 @@ from abc import ABC, abstractmethod
 import zipfile
 
 
-
 class AddFile(ABC):
 
     @abstractmethod
     def add(self):
         pass
+
 
 class UploadFile(ABC):
 
@@ -27,14 +27,12 @@ class BaseFile:
     def __init__(self, path, file):
         self.path = path
         self.file = file
-    
-    
+
     def clear_path(self, path):
 
         try:
             os.makedirs(path, exist_ok=False)
-
-        except:
+        except OSError:
             for file_object in os.listdir(path):
                 file_object_path = os.path.join(path, file_object)
                 if os.path.isfile(file_object_path):
@@ -124,7 +122,7 @@ class UploadCreator:
         try:
             uploader: UploadFile = self.ext_func[self.extension]()
             return uploader
-        except:
+        except KeyError:
             uploader: UploadFile = self.ext_func["other"]()
             return uploader
 
@@ -132,5 +130,5 @@ class UploadCreator:
         try:
             ext: Extractor = self.ext_func[self.extension]()
             return ext
-        except:
+        except KeyError:
             return None

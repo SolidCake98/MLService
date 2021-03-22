@@ -19,7 +19,7 @@ def cli():
 @cli.command(context_settings={"ignore_unknown_options": True})
 @click.argument("subcommand", nargs=-1, type=click.Path())
 def flask(subcommand):
-    command: ConsoleCommand = SimpleConsoleCommand('flask',*subcommand)
+    command: ConsoleCommand = SimpleConsoleCommand('flask', *subcommand)
     command.execute()
     
 

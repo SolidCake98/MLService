@@ -1,8 +1,8 @@
 from application.database import db_session, engine
 from application import models
 from application.facades.abstract_facade import AbstractFacade
-
 from sqlalchemy import text, desc, nullslast
+
 
 class UserFacade(AbstractFacade):
 
@@ -39,7 +39,7 @@ class UserGroupFacade(AbstractFacade):
         return models.UserGroup.query.filter_by(id=user.id).all()
 
     def add_user_to_group(self, admin, user, group):
-        result = db_session.execute(text(f"SELECT add_user_to_group('{admin}', '{user}', '{group}')"))
+        db_session.execute(text(f"SELECT add_user_to_group('{admin}', '{user}', '{group}')"))
         db_session.commit()
 
 
@@ -58,15 +58,17 @@ class DataSetFacade(AbstractFacade):
         result = db_session.execute(text(f"SELECT id, word_similarity(title, '{word}') \
             as sml FROM public.dataset WHERE '{word}' <% title ORDER BY sml DESC;"))
 
-        res = [{column: value for column, value in rowproxy.items()} for rowproxy in result]
-        datasets = [models.DataSet.query.filter(models.DataSet.id==el['id']).first() for el in res]
+        pr = [rowproxy for rowproxy in result]
+        res = [(column, value) for column, value in pr]
+        datasets = [models.DataSet.query.filter(models.DataSet.id==el[0]).first() for el in res]
         return datasets
 
     def get_dataset_by_tags(self, tags):
         result = db_session.execute(text(f"SELECT id FROM find_dataset_by_tag(array{tags})"))
 
-        res = [{column: value for column, value in rowproxy.items()} for rowproxy in result]
-        datasets = [models.DataSet.query.filter(models.DataSet.id==el['id']).first() for el in res]
+        pr = [rowproxy for rowproxy in result]
+        res = [column for column in pr]
+        datasets = [models.DataSet.query.filter(models.DataSet.id==el[0]).first() for el in res]
 
         return datasets
 
@@ -92,8 +94,11 @@ class TagFacade(AbstractFacade):
     def get_with_similarity_tag(self, word):
         result = db_session.execute(text(f"SELECT id, word_similarity(tag_name, '{word}') \
         as sml FROM public.tag ORDER BY sml DESC;"))
-        res = [{column: value for column, value in rowproxy.items()} for rowproxy in result]
-        tags = [models.Tag.query.filter(models.Tag.id==el['id']).first() for el in res]
+
+        pr = [rowproxy for rowproxy in result]
+        res = [(column, value) for column, value in pr]
+
+        tags = [models.Tag.query.filter(models.Tag.id==el[0]).first() for el in res]
         return tags 
 
 
@@ -103,9 +108,8 @@ class DataSetTagFacade(AbstractFacade):
         super().__init__(models.DataSetTag)
 
     def add_tags(self, id, tags):
-        result = db_session.execute(text(f"SELECT add_tags({id}, array{tags})"))
+        db_session.execute(text(f"SELECT add_tags({id}, array{tags})"))
         db_session.commit()
-            
 
 
 class DataSetMetaFacade(AbstractFacade):

@@ -1,27 +1,20 @@
 import os
-from abc import ABC, abstractmethod
 from application.config import Config
 from application.facades import facades
 from application.services.validate_service import FilenameValidate
 from application.services.dataset import upload_files as up
 from application.services import create_records as cr
-from application.services.dataset import read_csv as rcsv
 
 from flask import Response, send_from_directory
-from application import models, schemas
-from werkzeug.utils import secure_filename
-import zipfile
+from application import schemas
 import zipstream
-import shutil
-import json
 from threading import Thread, Lock
 import re
 import imghdr
-import mimetypes
 
 
-#TODO сделать раздление по файлам
-#TODO когда гружу директории сразу грузить и uri для картинок
+# TODO сделать раздление по файлам
+# TODO когда гружу директории сразу грузить и uri для картинок
 class DataSetPathStructure:
 
     def __init__(self, json):
@@ -30,7 +23,7 @@ class DataSetPathStructure:
 
     def sorted_alphanumeric(self, data):
         convert = lambda text: int(text) if text.isdigit() else text.lower()
-        alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ] 
+        alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
         return sorted(data, key=alphanum_key)
 
     def check_path_exists(self, path):
@@ -45,7 +38,7 @@ class DataSetPathStructure:
 
             if os.path.isdir(os.path.join(self.path, x)):
                 dir_info['type'] = 'directory'
-                
+
             else:
                 dir_info['type'] = 'file'
 
@@ -53,26 +46,23 @@ class DataSetPathStructure:
             dir_info['name'] = os.path.basename(x)
 
             lst.append(dir_info)
-        
+
         return lst
 
     def sort_dir_list(self, list_dir):
         alpabec_dir_list = self.sorted_alphanumeric(list_dir)
-        s_dir_list = sorted(alpabec_dir_list, key= lambda x : not os.path.isdir(os.path.join(self.path, x)))
+        s_dir_list = sorted(alpabec_dir_list, key=lambda x: not os.path.isdir(os.path.join(self.path, x)))
         return s_dir_list
 
-
-    def read(self, offset = 20):
+    def read(self, offset=20):
 
         res = {}
-        lst = []
 
-        
         if not self.check_path_exists(self.path):
-            return 404, {'error': 'dataset not found'}  
+            return 404, {'error': 'dataset not found'}
 
         s_dir_list = self.sort_dir_list(os.listdir(self.path))
-       
+
         count = len(s_dir_list)
 
         res['next_pos'] = (self.pos + offset) if max(0, count - (self.pos + offset)) else 0
@@ -80,21 +70,21 @@ class DataSetPathStructure:
         res['dir'] = self.create_dir_struct(s_dir_list, self.pos, self.pos + offset)
 
         return 200, res
-        
-class DataSetDownloadService:
 
+
+class DataSetDownloadService:
     """
     Service for downloading of datasets
     """
 
     def download(self, path):
-        
+
         z = zipstream.ZipFile(mode='w', compression=zipstream.ZIP_DEFLATED)
         pat = os.path.join(Config.DATASETS_ABS_PATH, path)
-        
+
         if not os.path.exists(pat):
             return 404, {'error': "Path didn't exist"}
-        
+
         for root, dirs, files in os.walk(pat):
             for file in files:
                 absname = os.path.abspath(os.path.join(root, file))
@@ -105,8 +95,8 @@ class DataSetDownloadService:
         response.headers['Content-Disposition'] = 'attachment; filename={}'.format('archive.zip')
         return 200, response
 
-class DataSetUploadService:
 
+class DataSetUploadService:
     """
     Service for uploading of datasets
     """
@@ -122,14 +112,25 @@ class DataSetUploadService:
         self.user = user
         self.file = file
 
-    #TODO нормальный поиск типов файла
+    def get_type(self, f):
+        try:
+            extension = f.rsplit('.', 1)[1].lower()
+        except ValueError:
+            extension = ''
+
+        if extension not in self.types:
+            return 'other'
+        else:
+            return extension
+
+    # TODO нормальный поиск типов файла
     def find_types_and_size(self, dir):
         types = set()
 
         sizes = ['B', 'KB', 'MB', 'GB']
         total_size = {'B': 0, 'KB': 0, 'MB': 0, 'GB': 0}
 
-        for dirpath, dirnames, filenames in os.walk(dir):
+        for dirpath, _, filenames in os.walk(dir):
             for f in filenames:
                 fp = os.path.join(dirpath, f)
 
@@ -140,39 +141,29 @@ class DataSetUploadService:
                     total_size[sizes[i]] += size % 1024
                     size = size // 1024
                     i += 1
-                
+
                 for s in range(len(sizes) - 1):
                     if total_size[sizes[s]] // 1024 > 0:
-                        total_size[sizes[s+1]] +=  total_size[sizes[s]] // 1024
+                        total_size[sizes[s + 1]] += total_size[sizes[s]] // 1024
                         total_size[sizes[s]] = total_size[sizes[s]] % 1024
 
-                try:
-                    extesion = f.rsplit('.', 1)[1].lower()
-                except:
-                    extesion = ''
-
-                if extesion not in self.types:
-                    types.add('other')
-                else:
-                    types.add(extesion)
+                types.add(self.get_type(f))
 
         return types, total_size
 
-    
     def __check_error_dataset(self, name):
         if facades.DataSetFacade().get_dataset_by_name(name):
             raise ValueError('Data set with this name was already upload')
 
-
     def upload(self):
 
-        def extract(arch:up.Extractor):
+        def extract(arch: up.Extractor):
             mutex.acquire()
             arch.extract()
             mutex.release()
 
-        def write_dataset(upload_dir:str, dataset_id:int):
-            
+        def write_dataset(upload_dir: str, dataset_id: int):
+
             dataset = facades.DataSetFacade().get_entity(dataset_id)
 
             mutex.acquire()
@@ -203,13 +194,15 @@ class DataSetUploadService:
 
             if extr:
                 thread_2 = Thread(target=extract, kwargs={'arch': extr})
+                # extract(extr)
                 thread_2.start()
 
             d_creator = cr.DataSetCreator(self.data, self.user)
             dataset = d_creator.create()
 
             thread_1 = Thread(target=write_dataset, kwargs={'upload_dir': upload_dir, 'dataset_id': dataset.id})
-            thread_1.start() 
+            thread_1.start()
+            write_dataset(upload_dir, dataset.id)
 
             return 200, {'message': 'file saved'}
 
@@ -218,6 +211,7 @@ class DataSetUploadService:
 
         except Exception as err:
             return 500, {"error": "Can't upload dataset"}
+
 
 class DataSetReadFile:
 
@@ -240,11 +234,7 @@ class DataSetImage:
     @staticmethod
     def check_img(path):
         allowed_img_types = ['gif', 'jpeg', 'png']
-
-        try:
-            return imghdr.what(path) in allowed_img_types
-        except:
-            return False
+        return imghdr.what(path) in allowed_img_types
 
     def send_image(self):
 
@@ -253,5 +243,3 @@ class DataSetImage:
 
         else:
             return 404
-
-#TODO добавить сервисы для добавления описания и тэгов

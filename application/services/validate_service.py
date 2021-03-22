@@ -1,9 +1,6 @@
+import re
 from abc import ABC, abstractmethod
 from typing import List
-from application import models
-from application.facades.facades import UserFacade
-import re
-from passlib.hash import pbkdf2_sha256 as sha256
 
 
 class Validate(ABC):
@@ -11,6 +8,7 @@ class Validate(ABC):
     @abstractmethod
     def validate(self):
         pass
+
 
 class UserRegisterValidate(Validate):
 
@@ -49,6 +47,7 @@ class EmailValidate(Validate):
     def validate(self):
         if not re.match(self.valid_email_regex, self.email):
             raise ValueError("Incorrect email value")
+
 
 class UsernameValidate(Validate):
     valid_username_regex = "^(?=.*[A-Za-z])[A-Za-z\d]{5,}$"

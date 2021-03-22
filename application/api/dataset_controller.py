@@ -1,39 +1,42 @@
-from application.services.dataset_services import (
-    DataSetUploadService, 
-    DataSetDownloadService, 
-    DataSetPathStructure, 
-    DataSetReadFile
-)
-from application.services.dataset.file_reader import ReaderCreator
-from application.facades import facades
-from flask_restful import Resource
+import json
+
 from flask import request
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_restful import Resource
+
 from application import models
 from application import schemas as sc
-from flask_jwt_extended import jwt_required, get_jwt_identity
-import json
+from application.facades import facades
+from application.services.dataset.file_reader import ReaderCreator
+from application.services.dataset_services import (
+    DataSetUploadService,
+    DataSetDownloadService,
+    DataSetPathStructure,
+    DataSetReadFile
+)
+
 
 class DataSetDownloadController(Resource):
 
     def get(self, user, data):
         d_service = DataSetDownloadService()
         code, result = d_service.download( user + "/" + data)
-        return reuslt, code
+        return result
 
 
 class DataSetAddTags(Resource):
-    @jwt_required
+    @jwt_required()
     def post(self):
-        current_user = get_jwt_identity()
         json = request.get_json()
 
         d = facades.DataSetTagFacade()
         d.add_tags(json['id'], json['tags'])
         return {'result': 'success'}
 
+
 class DataSetUploadController(Resource):
 
-    @jwt_required
+    @jwt_required()
     def post(self):
         current_user = get_jwt_identity()
         data_set = request.files['dataset']
@@ -116,16 +119,16 @@ class DataSetController(Resource):
 
 class DataSetListUserController(Resource):
 
-    @jwt_required
+    @jwt_required()
     def get(self):
         current_user = get_jwt_identity()
-        facades.DataSetFacade().get_with_similarity_title("test");
+        # facades.DataSetFacade().get_with_similarity_title("test");
         user = facades.UserFacade().get_entity(current_user['id'])
         return sc.DataSetSchema(many=True).dump(user.datasets)
 
 class DataSetUserRatingController(Resource):
 
-    @jwt_required
+    @jwt_required()
     def post(self):
         current_user = get_jwt_identity()
         json = request.get_json()
