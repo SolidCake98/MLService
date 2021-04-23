@@ -50,7 +50,7 @@ update_dataset_rating = ReplaceableObject(
 )
 
 before_dataset_rating = ReplaceableObject(
-    "before_WHERE public.dataset.name = NEW.namedataset_rating()",
+    "before_dataset_rating()",
     """
     RETURNS TRIGGER AS $$
     DECLARE

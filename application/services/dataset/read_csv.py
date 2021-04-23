@@ -1,6 +1,7 @@
 import pandas as pd
 import re
-
+import dask.dataframe as dd
+import numpy
 
 # TODO посмотреть на библиотеку dask!!! и попытаться сравнить скорость обработки
 class ReadCSVFile:

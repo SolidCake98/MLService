@@ -159,3 +159,62 @@ class DataSetTagCreator(Creator):
                 tag=t
             )
             dt_facade.create(dtag)
+
+
+class DataSetTableCreator(Creator):
+
+    def __init__(self, d_id, path, name):
+        self.d_id = d_id
+        self.path = path
+        self.name = name
+
+    def create(self):
+        
+        dataset_table = models.DataSetTable(
+            name = self.name,
+            dataset_id = self.d_id,
+            dataset_file = self.path
+        )
+
+        facades.DataSetTableFacade().create(dataset_table)
+
+        return dataset_table
+
+class DataSetColumnCreator(Creator):
+
+    def __init__(self, path, dataset_table_id, cols, types):
+        self.path = path
+        self.types_d = {
+            'int64': 'integer',
+            'float64': 'float',
+            'object': 'string'
+        }
+        self.dataset_table_id = dataset_table_id
+        self.cols = cols
+        self.types = types
+
+    def create(self):
+        d_cs_f = facades.DataSetColumnSourceFacade()
+        d_cv_f = facades.DataSetColumnVersionedFacade()
+
+        type_agg = facades.DataTypeAggregationFacade()
+
+        for i, col in enumerate(self.cols):
+            type_agg_m = type_agg.get_type_aggregation('none', self.types_d[str(self.types[i])])
+            col_source = models.DataSetColumnSource(
+                tittle = col,
+                dataset_table_id = self.dataset_table_id,
+                index = i,
+                data_type_aggregation_id = type_agg_m.id
+            )
+
+            d_cs_f.create(col_source)
+
+            col_ver = models.DataSetColumnVersioned(
+                tittle = col_source.tittle,
+                dataset_column_source_id = col_source.id,
+                index = i,
+                data_type_aggregation_id = type_agg_m.id
+            )
+
+            d_cv_f.create(col_ver)

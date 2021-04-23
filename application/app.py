@@ -30,6 +30,7 @@ from application.api.dataset_controller import (
     DataSetUserRatingController
 )
 
+from application.api.dataset_table_controller import DataSetTableController
 
 from application.api.media_controller import DataSetImageController, UserDefaultAvatar
 from flask_jwt_extended import JWTManager
@@ -41,6 +42,7 @@ def create_app(config_name):
 
     config_module = f"application.config.{config_name.capitalize()}Config"
     app.config.from_object(config_module)
+
 
     api = Api(app)
     JWTManager(app)
@@ -76,6 +78,9 @@ def create_app(config_name):
     api.add_resource(DataSetFileReadController, '/api/v1/dataset/file')
     api.add_resource(DataSetImageController, '/api/v1/dataset/img/<path:path>')
     api.add_resource(DataSetAddTags, '/api/v1/dataset/add_tags')
+
+    api.add_resource(DataSetTableController, '/api/v1/dataset_table')
+
 
     @app.teardown_appcontext
     def shutdown_session(exception=None):

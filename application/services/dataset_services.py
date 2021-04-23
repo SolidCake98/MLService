@@ -20,6 +20,7 @@ class DataSetPathStructure:
     def __init__(self, json):
         self.path = os.path.join(Config.DATASETS_ABS_PATH, json['path'])
         self.pos = json['pos']
+        self.filter = json['filter']
 
     def sorted_alphanumeric(self, data):
         convert = lambda text: int(text) if text.isdigit() else text.lower()
@@ -54,6 +55,10 @@ class DataSetPathStructure:
         s_dir_list = sorted(alpabec_dir_list, key=lambda x: not os.path.isdir(os.path.join(self.path, x)))
         return s_dir_list
 
+    def filter_ext(self, s_dir_list, ext):
+        f_list_dir = filter(lambda x: os.path.isdir(os.path.join(self.path, x)) or x.rsplit('.', 1)[1].lower()==ext, s_dir_list)
+        return list(f_list_dir) 
+
     def read(self, offset=20):
 
         res = {}
@@ -62,6 +67,8 @@ class DataSetPathStructure:
             return 404, {'error': 'dataset not found'}
 
         s_dir_list = self.sort_dir_list(os.listdir(self.path))
+        if self.filter != "none":
+            s_dir_list = self.filter_ext(s_dir_list, self.filter)
 
         count = len(s_dir_list)
 
@@ -125,7 +132,7 @@ class DataSetUploadService:
 
     # TODO нормальный поиск типов файла
     def find_types_and_size(self, dir):
-        types = set()
+        t = set()
 
         sizes = ['B', 'KB', 'MB', 'GB']
         total_size = {'B': 0, 'KB': 0, 'MB': 0, 'GB': 0}
@@ -147,9 +154,9 @@ class DataSetUploadService:
                         total_size[sizes[s + 1]] += total_size[sizes[s]] // 1024
                         total_size[sizes[s]] = total_size[sizes[s]] % 1024
 
-                types.add(self.get_type(f))
+                t.add(self.get_type(f))
 
-        return types, total_size
+        return t, total_size
 
     def __check_error_dataset(self, name):
         if facades.DataSetFacade().get_dataset_by_name(name):
@@ -194,7 +201,6 @@ class DataSetUploadService:
 
             if extr:
                 thread_2 = Thread(target=extract, kwargs={'arch': extr})
-                # extract(extr)
                 thread_2.start()
 
             d_creator = cr.DataSetCreator(self.data, self.user)
@@ -202,7 +208,6 @@ class DataSetUploadService:
 
             thread_1 = Thread(target=write_dataset, kwargs={'upload_dir': upload_dir, 'dataset_id': dataset.id})
             thread_1.start()
-            write_dataset(upload_dir, dataset.id)
 
             return 200, {'message': 'file saved'}
 
@@ -240,6 +245,5 @@ class DataSetImage:
 
         if self.check_img(os.path.join(Config.DATASETS_ABS_PATH, self.path)):
             return send_from_directory(Config.DATASETS_ABS_PATH, self.path)
-
         else:
             return 404

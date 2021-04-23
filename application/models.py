@@ -1,6 +1,8 @@
 from sqlalchemy.orm import relationship
-from sqlalchemy import Column, Integer, String, DateTime, func, ForeignKey, Text, Boolean, Float, Enum
+from sqlalchemy import Column, Integer, String, DateTime, func, ForeignKey, Text, Boolean, Float
+from sqlalchemy.dialects.postgresql import UUID
 from application.database import Base
+import uuid
 
 CASCADE_DELETE = "all, delete"
 
@@ -60,6 +62,8 @@ class DataSet(Base):
     tags = relationship("DataSetTag" , back_populates="dataset", cascade=CASCADE_DELETE)
     dataset_meta = relationship("DataSetMeta", back_populates="dataset", cascade=CASCADE_DELETE, lazy='subquery')
     file_types = relationship("DataSetType", back_populates="dataset", cascade=CASCADE_DELETE)
+
+    dataset_tables = relationship("DataSetTable", back_populates="dataset", cascade=CASCADE_DELETE)
 
     def __repr__(self):
         return str(self.id)
@@ -141,7 +145,7 @@ class UserDataset(Base):
     """
     __tablename__ = "user_dataset"
 
-    id        =  Column(Integer, primary_key=True)
+    id        = Column(Integer, primary_key=True)
     username  = Column(String)
     name      = Column(String)
     title     = Column(String)
@@ -167,8 +171,84 @@ class RatingDataSetLastMonth(Base):
     """
     __tablename__ = "rating_last_month"
 
-    id       = Column(Integer, primary_key=True)
-    name     = Column(String)
-    title    = Column(String)
-    count    = Column(Integer)
-    avg      = Column(Float)
+    id    = Column(Integer, primary_key=True)
+    name  = Column(String)
+    title = Column(String)
+    count = Column(Integer)
+    avg   = Column(Float)
+
+
+class DataSetTable(Base):
+
+    __tablename__ = "dataset_table"
+
+    id           = Column(Integer, primary_key=True)
+    name         = Column(String)
+    dataset_id   = Column(Integer, ForeignKey("dataset.id"), nullable=False)
+    dataset_file = Column(String(1000), nullable=False)
+    is_public    = Column(Boolean,  default=True)
+    date_load    = Column(DateTime, default=func.now())
+    date_changed = Column(DateTime)
+
+    dataset = relationship("DataSet", back_populates="dataset_tables")
+    dataset_column_sources = relationship("DataSetColumnSource", back_populates="dataset_table")
+
+
+class Aggregation(Base):
+    __tablename__ = "aggregation"
+
+    id   = Column(Integer, primary_key=True)
+    name = Column(String)
+
+    data_type_ags = relationship("DataTypeAggregation", back_populates="aggregation")
+
+
+class DataType(Base):
+    __tablename__ = "data_type"
+
+    id   = Column(Integer, primary_key=True)
+    name = Column(String)
+
+    data_type_ags = relationship("DataTypeAggregation", back_populates="data_type")
+
+
+class DataTypeAggregation(Base):
+    __tablename__ = "data_type_aggregation"
+
+    id             = Column(Integer, primary_key=True)
+    aggregation_id = Column(ForeignKey("aggregation.id"), nullable=False)
+    data_type_id   = Column(ForeignKey("data_type.id"), nullable=False)
+
+    aggregation = relationship("Aggregation", back_populates="data_type_ags")
+    data_type = relationship("DataType", back_populates="data_type_ags")
+
+    dataset_column_sources = relationship("DataSetColumnSource", back_populates="data_type_aggregation")
+    dataset_column_versioned = relationship("DataSetColumnVersioned", back_populates="data_type_aggregation")
+ 
+
+class DataSetColumnSource(Base):
+
+    __tablename__ = "dataset_column_source"
+
+    id                       = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tittle                   = Column(String)
+    dataset_table_id         = Column(Integer, ForeignKey("dataset_table.id"), nullable=False)
+    data_type_aggregation_id = Column(Integer, ForeignKey("data_type_aggregation.id"), nullable=False)
+    index                    = Column(Integer)
+    
+    dataset_table = relationship("DataSetTable", back_populates="dataset_column_sources")
+    data_type_aggregation = relationship("DataTypeAggregation", back_populates="dataset_column_sources")
+    dataset_column_versioned = relationship("DataSetColumnVersioned", back_populates="dataset_column_sources")
+
+
+class DataSetColumnVersioned(Base):
+    __tablename__ = "dataset_column_versioned"
+
+    id                       = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tittle                   = Column(String)
+    dataset_column_source_id = Column(UUID(as_uuid=True), ForeignKey("dataset_column_source.id"), nullable=False)
+    data_type_aggregation_id = Column(Integer, ForeignKey("data_type_aggregation.id"), nullable=False)
+    index                    = Column(Integer)
+
+    data_type_aggregation = relationship("DataTypeAggregation", back_populates="dataset_column_versioned")
+    dataset_column_sources = relationship("DataSetColumnSource", back_populates="dataset_column_versioned")

@@ -10,3 +10,6 @@ zipstream-new
 pandas
 python-magic
 redis
+dask
+distributed
+bokeh

@@ -29,6 +29,6 @@ services:
       - ${PWD}:/usr/src/app/
     ports:
       - "5000:5000"
-
+      
 volumes:
   pgdata:

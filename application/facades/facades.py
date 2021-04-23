@@ -138,3 +138,37 @@ class CountDatasetFacade(AbstractFacade):
 class UserRatingFacade(AbstractFacade):
     def __init__(self):
         super().__init__(models.UserRating)
+
+
+class DataSetTableFacade(AbstractFacade):
+    def __init__(self):
+        super().__init__(models.DataSetTable)
+
+
+class DataSetColumnSourceFacade(AbstractFacade):
+    def __init__(self):
+        super().__init__(models.DataSetColumnSource)
+
+
+class DataSetColumnVersionedFacade(AbstractFacade):
+    def __init__(self):
+        super().__init__(models.DataSetColumnVersioned)
+
+
+class DataTypeFacade(AbstractFacade):
+    def __init__(self):
+        super().__init__(models.DataType)
+
+
+class AggregationFacade(AbstractFacade):
+    def __init__(self):
+        super().__init__(models.Aggregation)
+
+
+class DataTypeAggregationFacade(AbstractFacade):
+    def __init__(self):
+        super().__init__(models.DataTypeAggregation)
+
+    def get_type_aggregation(self, aggr: str, type:str):
+        return models.DataTypeAggregation.query.join(models.DataType).join(models.Aggregation).filter(models.DataType.name == type, \
+        models.Aggregation.name == aggr).first()
