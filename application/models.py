@@ -18,9 +18,11 @@ class User(Base):
     date_joined = Column(DateTime,   default=func.now())
     last_login  = Column(DateTime,   nullable=True)
 
-    groups       = relationship("UserGroup", back_populates="user", cascade=CASCADE_DELETE)
-    user_ratings = relationship("UserRating", back_populates="user", cascade=CASCADE_DELETE)
-    datasets     = relationship("DataSet",   back_populates="user", cascade=CASCADE_DELETE)
+    groups         = relationship("UserGroup", back_populates="user", cascade=CASCADE_DELETE)
+    user_ratings   = relationship("UserRating", back_populates="user", cascade=CASCADE_DELETE)
+    datasets       = relationship("DataSet",   back_populates="user", cascade=CASCADE_DELETE)
+    dataset_tables = relationship("DataSetTable",   back_populates="user", cascade=CASCADE_DELETE)
+    data_charts    = relationship("DataChart",   back_populates="user", cascade=CASCADE_DELETE)
 
 
 class Group(Base):
@@ -129,7 +131,7 @@ class UserRating(Base):
 
     id           = Column(Integer, primary_key=True)
     dataset_id   = Column(Integer, ForeignKey("dataset.id"), nullable=False)
-    user_id      = Column(Integer,  ForeignKey("user.id"), nullable=False)
+    user_id      = Column(Integer,  ForeignKey("user.id"))
     rating       = Column(Float)
     is_favoritre = Column(Boolean, default=False)
     commenatary  = Column(Text)
@@ -185,12 +187,14 @@ class DataSetTable(Base):
     id           = Column(Integer, primary_key=True)
     name         = Column(String)
     dataset_id   = Column(Integer, ForeignKey("dataset.id"), nullable=False)
+    owner_id     = Column(Integer, ForeignKey("user.id"), nullable=False)
     dataset_file = Column(String(1000), nullable=False)
     is_public    = Column(Boolean,  default=True)
     date_load    = Column(DateTime, default=func.now())
     date_changed = Column(DateTime)
 
     dataset = relationship("DataSet", back_populates="dataset_tables")
+    user = relationship("User", back_populates="dataset_tables")
     dataset_column_sources = relationship("DataSetColumnSource", back_populates="dataset_table")
 
 
@@ -252,3 +256,34 @@ class DataSetColumnVersioned(Base):
 
     data_type_aggregation = relationship("DataTypeAggregation", back_populates="dataset_column_versioned")
     dataset_column_sources = relationship("DataSetColumnSource", back_populates="dataset_column_versioned")
+
+
+class ChartType(Base):
+    __tablename__ = "chart_type"
+
+    id   = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+
+    data_charts = relationship("DataChart", back_populates="chart_type")
+
+
+class DataChart(Base):
+    __tablename__ = "data_chart"
+
+    id   = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+
+    chart_type_id    = Column(Integer, ForeignKey("chart_type.id"), nullable=False)
+    dataset_table_id = Column(Integer, ForeignKey("dataset_table.id"), nullable=False)
+    owner_id     = Column(Integer, ForeignKey("user.id"), nullable=False)
+
+    user = relationship("User", back_populates="data_charts")
+    chart_type = relationship("ChartType", back_populates="data_charts")
+
+    x_dataset_column_v_id = Column(UUID(as_uuid=True), ForeignKey("dataset_column_versioned.id"))
+    y_dataset_column_v_id = Column(UUID(as_uuid=True), ForeignKey("dataset_column_versioned.id"))
+
+    x_dataset_column_v = relationship("DataSetColumnVersioned", foreign_keys=[x_dataset_column_v_id])
+    y_dataset_column_v = relationship("DataSetColumnVersioned", foreign_keys=[y_dataset_column_v_id])
+
+

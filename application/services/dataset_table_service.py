@@ -15,12 +15,12 @@ class DataSetTableService:
         name = self.json['name']
         data_frame = dd.read_csv(self.path)
 
-        dt_creator = DataSetTableCreator(dataset_id, self.path, name)
+        dt_creator = DataSetTableCreator(dataset_id, self.json['path'], name)
         d_table = dt_creator.create()
 
         cols = data_frame.columns
         types = data_frame.dtypes
 
-        d_columns_creator = DataSetColumnCreator(self.path, d_table.id, cols, types)
+        d_columns_creator = DataSetColumnCreator(self.json['path'], d_table.id, cols, types)
         d_columns_creator.create()
         

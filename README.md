@@ -9,8 +9,8 @@
 
 - `./manage.py create-initial-db` - инициализация БД.
 
-- `./manage.py migrate [--revision] [--autogenerate] [-m] [name]` - создание файлов миграции БД.
+- `./manage.py migrate revision [--autogenerate] -m [name]` - создание файлов миграции БД.
 
-- `./manage.py migrate [upgrade] [head]` - миграция БД.
+- `./manage.py migrate upgrade [head]` - миграция БД.
 
 - `./manage.py test` - запуск тестов.

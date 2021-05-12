@@ -144,15 +144,28 @@ class DataSetTableFacade(AbstractFacade):
     def __init__(self):
         super().__init__(models.DataSetTable)
 
+    def get_all_tables_by_data_id(self, data_id: int):
+        return models.DataSetTable.query.filter_by(dataset_id = data_id).\
+            order_by(desc(models.DataSetTable.date_load))
+
 
 class DataSetColumnSourceFacade(AbstractFacade):
     def __init__(self):
         super().__init__(models.DataSetColumnSource)
 
+    def get_all_columns_of_data_table(self, table_id: int):
+        return models.DataSetColumnSource.query.filter_by(dataset_table_id = table_id).\
+            order_by(desc(models.DataSetColumnSource.index))
+
 
 class DataSetColumnVersionedFacade(AbstractFacade):
     def __init__(self):
         super().__init__(models.DataSetColumnVersioned)
+
+    def get_all_columns_of_data_table(self, table_id: int):
+        return models.DataSetColumnVersioned.query.join(models.DataSetColumnSource).\
+            filter(models.DataSetColumnSource.dataset_table_id == table_id).\
+            order_by(models.DataSetColumnVersioned.index).all()
 
 
 class DataTypeFacade(AbstractFacade):
@@ -172,3 +185,8 @@ class DataTypeAggregationFacade(AbstractFacade):
     def get_type_aggregation(self, aggr: str, type:str):
         return models.DataTypeAggregation.query.join(models.DataType).join(models.Aggregation).filter(models.DataType.name == type, \
         models.Aggregation.name == aggr).first()
+
+
+class ChartTypeFacade(AbstractFacade):
+    def __init__(self):
+        super().__init__(models.ChartType)

@@ -60,6 +60,7 @@ class DataSetMetaSchema(Schema):
     size = fields.Int()
     size_name = fields.String()
     
+
 class FileTypeSchema(Schema):
     type_name = fields.String()
 
@@ -70,9 +71,11 @@ class TagSchema(Schema):
     id = fields.Integer()
     tag_name = fields.String()
 
+
 class DataSetTagSchema(Schema):
     id  = fields.Integer()
     tag = fields.Nested(TagSchema)
+
 
 class UserRatingSchema(Schema):
     id = fields.Int(dump_only=True)
@@ -85,6 +88,7 @@ class UserRatingSchema(Schema):
 
     def get_days_since_created(self, obj):
         return day_since(obj.create_time)
+
 
 class DataSetSchema(Schema):
     id          = fields.Int(dump_only=True)
@@ -112,3 +116,54 @@ class CountDataSetSchema(Schema):
     username = fields.String()
     count    = fields.Integer()
     avg      = fields.Float()
+
+
+class DataTableSchema(Schema):
+    id   = fields.Int(dump_only=True)
+
+    name = fields.String()
+    dataset_file = fields.String()
+    date_load = fields.DateTime()
+    date_changed = fields.DateTime()
+
+    user = fields.Nested(UserSchema)
+    since_created = fields.Method("get_days_since_created")
+
+    def get_days_since_created(self, obj):
+        return day_since(obj.date_load)
+
+
+class AggregationSchema(Schema):
+    id = fields.Int(dump_only=True)
+    name = fields.String()
+
+
+class DataTypeSchema(Schema):
+    id = fields.Int(dump_only=True)
+    name = fields.String()
+
+
+class DataTypeAggregationSchema(Schema):
+    id = fields.Int(dump_only=True)
+    
+    aggregation = fields.Nested(AggregationSchema)
+    data_type = fields.Nested(DataTypeSchema)
+
+
+class DataTableColumnSourceSchema(Schema):
+    id = fields.UUID(dump_only=True)
+
+    tittle = fields.String()
+    index = fields.Int()
+
+    data_type_aggregation = fields.Nested(DataTypeAggregationSchema)
+    
+
+class DataTableColumnVersionedSchema(Schema):
+    id = fields.UUID(dump_only=True)
+
+    tittle = fields.String()
+    index = fields.Int()
+
+    data_type_aggregation = fields.Nested(DataTypeAggregationSchema)
+    dataset_column_sources = fields.Nested(DataTableColumnSourceSchema, only={'id', 'tittle'})
