@@ -172,6 +172,7 @@ class DataSetTableCreator(Creator):
         
         dataset_table = models.DataSetTable(
             name = self.name,
+            owner_id = 1,
             dataset_id = self.d_id,
             dataset_file = self.path
         )

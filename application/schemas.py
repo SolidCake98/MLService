@@ -1,3 +1,4 @@
+from os import name
 from marshmallow import Schema, fields
 import datetime as dt
 
@@ -167,3 +168,8 @@ class DataTableColumnVersionedSchema(Schema):
 
     data_type_aggregation = fields.Nested(DataTypeAggregationSchema)
     dataset_column_sources = fields.Nested(DataTableColumnSourceSchema, only={'id', 'tittle'})
+
+class ChartTypeSchema(Schema):
+    id = fields.Integer(dump_only=True)
+
+    name = fields.String()

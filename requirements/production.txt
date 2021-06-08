@@ -13,3 +13,4 @@ redis
 dask
 distributed
 bokeh
+sklearn

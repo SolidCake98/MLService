@@ -61,9 +61,8 @@ def create_app(config_name):
     api.add_resource(data_table_c.DataSetTableController, '/api/v1/dataset_table/<int:table_id>')
     api.add_resource(data_table_c.DataTypeAggregationController, '/api/v1/dataset_table/types')
 
-    api.add_resource(data_chart_c.DataChart, '/api/v1/dataset_chart/calculate')
-
-
+    api.add_resource(data_chart_c.DataChartController, '/api/v1/dataset_chart/calculate')
+    api.add_resource(data_chart_c.ChartTypeController, '/api/v1/dataset_chart/type')
 
     @app.teardown_appcontext
     def shutdown_session(exception=None):
